@@ -66,7 +66,7 @@ describe('CargasService (crear)', () => {
   afterEach(() => http.verify());
 
   it('envia los datos y el archivo como formulario con archivo, sin nivel de ingreso', () => {
-    const archivo = new File(['a,b\n1,2'], 'catastro.csv', { type: 'text/csv' });
+    const archivo = new File(['a,b\n1,2'], 'datos.csv', { type: 'text/csv' });
     let detalle: DetalleCarga | undefined;
     servicio
       .crear(
@@ -83,7 +83,7 @@ describe('CargasService (crear)', () => {
     expect(cuerpo.get('periodoDesde')).toBe('2026-01-01');
     expect(cuerpo.get('periodoHasta')).toBe('2026-01-31');
     expect(JSON.parse(cuerpo.get('metadatos') as string)).toEqual({ cobertura: 'Provincia' });
-    expect((cuerpo.get('archivo') as File).name).toBe('catastro.csv');
+    expect((cuerpo.get('archivo') as File).name).toBe('datos.csv');
     expect(cuerpo.has('nivelIngreso')).toBe(false);
     peticion.flush({ ok: true, data: { carga: { id: 9 }, archivos: [], metadatos: [] } }, { status: 201, statusText: 'Created' });
 

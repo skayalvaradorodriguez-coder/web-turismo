@@ -1,5 +1,3 @@
-import type { EstadoCarga } from './carga.models';
-
 export type TipoProcesamiento = 'validacion' | 'procesamiento';
 export type EstadoProcesamiento = 'en_curso' | 'completado' | 'fallido';
 export type SeveridadHallazgo = 'error' | 'alerta';
@@ -38,13 +36,6 @@ export interface ResumenHallazgo {
   regla: string;
   severidad: SeveridadHallazgo;
   total: number;
-}
-
-/** Respuesta de validar y de procesar. */
-export interface ResultadoProcesamiento {
-  procesamiento: Procesamiento;
-  resumen: ResumenHallazgo[];
-  estadoCarga: EstadoCarga;
 }
 
 export interface PaginaHallazgos {

@@ -43,12 +43,12 @@ describe('FuentesListaPage', () => {
     const { fixture, http, texto, tarjetas } = preparar('admin');
     http.expectOne(`${API_URL}/fuentes`).flush({
       ok: true,
-      data: { fuentes: [fuente(1, 'Catastro', 'activa'), fuente(2, 'Playas', 'inactiva')] },
+      data: { fuentes: [fuente(1, 'Encuesta', 'activa'), fuente(2, 'Playas', 'inactiva')] },
     });
     fixture.detectChanges();
 
     expect(tarjetas()).toBe(2);
-    expect(texto()).toContain('Catastro');
+    expect(texto()).toContain('Encuesta');
     expect(texto()).toContain('Inactiva');
   });
 
@@ -75,7 +75,7 @@ describe('FuentesListaPage', () => {
 
   it('gestion ve "Nueva fuente" y "Editar"', () => {
     const { fixture, http, texto } = preparar('admin');
-    http.expectOne(`${API_URL}/fuentes`).flush({ ok: true, data: { fuentes: [fuente(1, 'Catastro', 'activa')] } });
+    http.expectOne(`${API_URL}/fuentes`).flush({ ok: true, data: { fuentes: [fuente(1, 'Encuesta', 'activa')] } });
     fixture.detectChanges();
 
     expect(texto()).toContain('Nueva fuente');
@@ -84,7 +84,7 @@ describe('FuentesListaPage', () => {
 
   it('el investigador solo consulta: no ve "Nueva fuente" ni "Editar"', () => {
     const { fixture, http, texto } = preparar('investigador');
-    http.expectOne(`${API_URL}/fuentes`).flush({ ok: true, data: { fuentes: [fuente(1, 'Catastro', 'activa')] } });
+    http.expectOne(`${API_URL}/fuentes`).flush({ ok: true, data: { fuentes: [fuente(1, 'Encuesta', 'activa')] } });
     fixture.detectChanges();
 
     expect(texto()).not.toContain('Nueva fuente');

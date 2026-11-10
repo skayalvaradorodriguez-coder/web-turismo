@@ -14,7 +14,6 @@ import { mensajeApi } from '@app/shared/utils/api-error';
 import { guardarArchivo } from '@app/shared/utils/guardar-archivo';
 import { etiquetaEstadoCarga, etiquetaNivelIngreso, formatearPeriodo, formatearTamano } from '../cargas.utils';
 import { ProcesamientoCargaComponent } from '../procesamiento-carga/procesamiento-carga.component';
-import { CODIGO_FUENTE_CATASTRO } from '../procesamiento-carga/procesamiento.utils';
 
 /** Estados en los que todavia se puede rechazar (los mismos que acepta la API). */
 const ESTADOS_ABIERTOS: readonly EstadoCarga[] = ['recibida', 'validada'];
@@ -39,8 +38,6 @@ export class CargaDetallePage implements OnInit {
 
   protected readonly detalle = signal<DetalleCarga | null>(null);
   private readonly nombreFuente = signal<string | null>(null);
-  protected readonly codigoFuente = signal<string | null>(null);
-  protected readonly esCatastro = computed(() => this.codigoFuente() === CODIGO_FUENTE_CATASTRO);
   protected readonly cargando = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly aviso = signal<string | null>(null);
@@ -98,10 +95,7 @@ export class CargaDetallePage implements OnInit {
       .obtener(fuenteId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (fuente) => {
-          this.nombreFuente.set(fuente.nombre);
-          this.codigoFuente.set(fuente.codigo);
-        },
+        next: (fuente) => this.nombreFuente.set(fuente.nombre),
         error: () => undefined,
       });
   }
@@ -127,14 +121,6 @@ export class CargaDetallePage implements OnInit {
     return Number.isNaN(fecha.getTime())
       ? ''
       : fecha.toLocaleString('es-EC', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-  }
-
-  /** Vuelve a pedir la carga (por ejemplo, despues de validar o procesar) para ver su estado y nivel al dia. */
-  protected recargar(): void {
-    this.cargasApi
-      .obtener(this.id)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({ next: (detalle) => this.detalle.set(detalle), error: () => undefined });
   }
 
   descargar(archivo: ArchivoOriginal): void {

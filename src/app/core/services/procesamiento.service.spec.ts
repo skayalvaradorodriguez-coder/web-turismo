@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { API_URL } from '@app/core/config/api.config';
-import type { PaginaHallazgos, Procesamiento, ResultadoProcesamiento } from '@app/core/models/procesamiento.models';
+import type { PaginaHallazgos, Procesamiento } from '@app/core/models/procesamiento.models';
 import { ProcesamientoService } from './procesamiento.service';
 
 const procesamiento: Procesamiento = {
@@ -32,31 +32,6 @@ describe('ProcesamientoService', () => {
   });
 
   afterEach(() => http.verify());
-
-  it('validar envia un POST sin cuerpo y devuelve el resultado', () => {
-    const recibidos: ResultadoProcesamiento[] = [];
-    servicio.validar(10).subscribe((r) => recibidos.push(r));
-
-    const req = http.expectOne(`${API_URL}/cargas/10/validar`);
-    expect(req.request.method).toBe('POST');
-    expect(req.request.body).toBeNull();
-    req.flush({ ok: true, data: { procesamiento, resumen: [], estadoCarga: 'validada' } });
-
-    expect(recibidos[0]?.estadoCarga).toBe('validada');
-    expect(recibidos[0]?.procesamiento.id).toBe(91);
-  });
-
-  it('procesar envia un POST sin cuerpo a la ruta de procesar', () => {
-    const recibidos: ResultadoProcesamiento[] = [];
-    servicio.procesar(10).subscribe((r) => recibidos.push(r));
-
-    const req = http.expectOne(`${API_URL}/cargas/10/procesar`);
-    expect(req.request.method).toBe('POST');
-    expect(req.request.body).toBeNull();
-    req.flush({ ok: true, data: { procesamiento: { ...procesamiento, tipo: 'procesamiento' }, resumen: [], estadoCarga: 'procesada' } });
-
-    expect(recibidos[0]?.estadoCarga).toBe('procesada');
-  });
 
   it('listar devuelve solo la lista de procesamientos', () => {
     const recibidos: Procesamiento[][] = [];

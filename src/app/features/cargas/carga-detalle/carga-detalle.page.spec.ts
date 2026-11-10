@@ -49,6 +49,8 @@ function preparar(opciones: { rol?: string; id?: string } = {}) {
     http.expectOne(URL_CARGA).flush({ ok: true, data: cuerpo });
     http.expectOne(URL_FUENTE).flush({ ok: true, data: { fuente: { id: 1, nombre: 'Fuente de prueba' } } });
     fixture.detectChanges();
+    http.expectOne(`${URL_CARGA}/procesamientos`).flush({ ok: true, data: { procesamientos: [] } });
+    fixture.detectChanges();
   };
   return { fixture, http, raiz, texto, boton, responder, pagina: fixture.componentInstance };
 }
@@ -169,17 +171,17 @@ describe('CargaDetallePage', () => {
 
     boton('Rechazar carga')?.click();
     fixture.detectChanges();
-    pagina.motivo.setValue('  Faltan columnas del catastro  ');
+    pagina.motivo.setValue('  Faltan columnas del archivo  ');
     boton('Confirmar rechazo')?.click();
 
     const peticion = http.expectOne(`${URL_CARGA}/rechazo`);
     expect(peticion.request.method).toBe('POST');
-    expect(peticion.request.body).toEqual({ motivo: 'Faltan columnas del catastro' });
-    peticion.flush({ ok: true, data: detalle('rechazada', { motivoRechazo: 'Faltan columnas del catastro' }) });
+    expect(peticion.request.body).toEqual({ motivo: 'Faltan columnas del archivo' });
+    peticion.flush({ ok: true, data: detalle('rechazada', { motivoRechazo: 'Faltan columnas del archivo' }) });
     fixture.detectChanges();
 
     expect(raiz.querySelector('.insignia')?.textContent?.trim()).toBe('Rechazada');
-    expect(texto()).toContain('Faltan columnas del catastro');
+    expect(texto()).toContain('Faltan columnas del archivo');
     expect(texto()).toContain('La carga fue rechazada');
     expect(boton('Rechazar carga')).toBeUndefined();
   });

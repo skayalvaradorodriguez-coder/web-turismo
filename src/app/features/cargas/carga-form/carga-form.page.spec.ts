@@ -11,9 +11,9 @@ const URL_CARGAS = `${API_URL}/cargas`;
 const URL_FUENTES = `${API_URL}/fuentes`;
 const fuente = (id: number, nombre: string) => ({ id, nombre }) as Fuente;
 const eventoConArchivo = (archivo: File) => ({ target: { files: [archivo] } }) as unknown as Event;
-const csv = () => new File(['a,b\n1,2'], 'catastro.csv', { type: 'text/csv' });
+const csv = () => new File(['a,b\n1,2'], 'datos.csv', { type: 'text/csv' });
 
-function preparar(fuentes: Fuente[] = [fuente(1, 'Catastro'), fuente(2, 'Playas')]) {
+function preparar(fuentes: Fuente[] = [fuente(1, 'Encuesta'), fuente(2, 'Playas')]) {
   TestBed.configureTestingModule({ providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()] });
   const navegar = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
   const fixture = TestBed.createComponent(CargaFormPage);
@@ -84,7 +84,7 @@ describe('CargaFormPage', () => {
     expect(cuerpo.get('descripcion')).toBe('Prueba');
     expect(cuerpo.get('periodoDesde')).toBe('2026-01-01');
     expect(JSON.parse(cuerpo.get('metadatos') as string)).toEqual({ cobertura: 'Provincia' });
-    expect((cuerpo.get('archivo') as File).name).toBe('catastro.csv');
+    expect((cuerpo.get('archivo') as File).name).toBe('datos.csv');
     peticion.flush({ ok: true, data: { carga: { id: 9 }, archivos: [], metadatos: [] } }, { status: 201, statusText: 'Created' });
 
     expect(navegar).toHaveBeenCalledWith('/cargas', { state: { aviso: expect.stringContaining('#9') } });

@@ -57,11 +57,11 @@ describe('CargasListaPage', () => {
 
   it('muestra una tarjeta por carga con el nombre de su fuente y su periodo', () => {
     const { raiz, texto, responder } = preparar();
-    responder([fuente(1, 'Catastro Turístico')], [carga(10, 1, 'validada'), carga(11, 1, 'publicada')]);
+    responder([fuente(1, 'Encuesta Turística')], [carga(10, 1, 'validada'), carga(11, 1, 'publicada')]);
 
     expect(raiz.querySelectorAll('.carga').length).toBe(2);
     expect(Array.from(raiz.querySelectorAll('.insignia')).map((e) => e.textContent?.trim())).toEqual(['Validada', 'Publicada']);
-    expect(texto()).toContain('Catastro Turístico');
+    expect(texto()).toContain('Encuesta Turística');
     expect(texto()).toContain('1 ene 2025 – 31 mar 2025');
   });
 
@@ -76,9 +76,9 @@ describe('CargasListaPage', () => {
 
   it('una carga rechazada muestra el motivo', () => {
     const { texto, responder } = preparar();
-    responder([fuente(1, 'Catastro')], [carga(10, 1, 'rechazada', { motivoRechazo: 'Faltan columnas del catastro' })]);
+    responder([fuente(1, 'Encuesta')], [carga(10, 1, 'rechazada', { motivoRechazo: 'Faltan columnas del archivo' })]);
 
-    expect(texto()).toContain('Faltan columnas del catastro');
+    expect(texto()).toContain('Faltan columnas del archivo');
   });
 
   it('sin cargas muestra el estado vacio', () => {

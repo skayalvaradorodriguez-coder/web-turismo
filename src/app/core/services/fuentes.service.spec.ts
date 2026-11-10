@@ -6,7 +6,7 @@ import { API_URL } from '@app/core/config/api.config';
 import type { Fuente } from '@app/core/models/fuente.models';
 import { FuentesService } from './fuentes.service';
 
-const fuente = { id: 7, codigo: 'catastro_turistico', nombre: 'Catastro', estado: 'activa' } as unknown as Fuente;
+const fuente = { id: 7, codigo: 'encuesta_feriados', nombre: 'Encuesta', estado: 'activa' } as unknown as Fuente;
 
 describe('FuentesService', () => {
   let servicio: FuentesService;
@@ -52,7 +52,7 @@ describe('FuentesService', () => {
   });
 
   it('crear envia los datos por POST', () => {
-    const datos = { codigo: 'catastro_turistico', nombre: 'Catastro', institucion: 'Ministerio' };
+    const datos = { codigo: 'encuesta_feriados', nombre: 'Encuesta', institucion: 'UPSE' };
     let recibido: Fuente | undefined;
     servicio.crear(datos).subscribe((f) => (recibido = f));
 
@@ -65,7 +65,7 @@ describe('FuentesService', () => {
   });
 
   it('editar envia los datos por PUT a /fuentes/:id', () => {
-    const datos = { nombre: 'Catastro 2026', institucion: 'Ministerio de Turismo' };
+    const datos = { nombre: 'Encuesta 2026', institucion: 'UPSE' };
     servicio.editar(7, datos).subscribe();
 
     const peticion = http.expectOne(`${API_URL}/fuentes/7`);

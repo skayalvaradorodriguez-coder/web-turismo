@@ -2,7 +2,7 @@ import type { EstadoFuente, Fuente } from '@app/core/models/fuente.models';
 
 export type FiltroEstado = EstadoFuente | 'todas';
 
-/** Minusculas y sin tildes, para que "ministerio" encuentre "Ministerio" y "turistica" encuentre "turística". */
+/** Minusculas y sin tildes, para que "upse" encuentre "UPSE" y "turistica" encuentre "turística". */
 const normalizar = (texto: string): string =>
   texto
     .normalize('NFD')

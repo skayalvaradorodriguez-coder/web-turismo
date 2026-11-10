@@ -8,7 +8,7 @@ import type { Fuente } from '@app/core/models/fuente.models';
 import { FuenteFormPage } from './fuente-form.page';
 
 const fuenteGuardada = {
-  id: 7, codigo: 'catastro_turistico', nombre: 'Catastro', institucion: 'Ministerio', descripcion: 'Registros',
+  id: 7, codigo: 'encuesta_feriados', nombre: 'Encuesta', institucion: 'UPSE', descripcion: 'Registros',
   tipoFuente: null, mecanismoAcceso: 'descarga_manual', frecuenciaActualizacion: null, procedencia: null,
   licenciaUso: null, responsable: null, estado: 'activa', creadoPor: 1, creadaEn: '', actualizadaEn: '',
 } as Fuente;
@@ -46,9 +46,9 @@ describe('FuenteFormPage (crear)', () => {
 
   it('el codigo solo admite minusculas, numeros y guion bajo', () => {
     const codigo = ctx.pagina.form.controls.codigo;
-    codigo.setValue('Catastro Turistico');
+    codigo.setValue('Encuesta Turistica');
     expect(codigo.errors?.['pattern']).toBeTruthy();
-    codigo.setValue('catastro_turistico');
+    codigo.setValue('encuesta_feriados');
     expect(codigo.valid).toBe(true);
   });
 
@@ -97,17 +97,17 @@ describe('FuenteFormPage (editar)', () => {
 
     http.expectOne(`${API_URL}/fuentes/7`).flush({ ok: true, data: { fuente: fuenteGuardada } });
 
-    expect(pagina.form.controls.nombre.value).toBe('Catastro');
+    expect(pagina.form.controls.nombre.value).toBe('Encuesta');
     expect(pagina.form.controls.mecanismoAcceso.value).toBe('descarga_manual');
     expect(pagina.form.controls.codigo.disabled).toBe(true);
 
-    pagina.form.patchValue({ nombre: 'Catastro 2026' });
+    pagina.form.patchValue({ nombre: 'Encuesta 2026' });
     pagina.enviar();
 
     const peticion = http.expectOne(`${API_URL}/fuentes/7`);
     expect(peticion.request.method).toBe('PUT');
     expect(peticion.request.body).not.toHaveProperty('codigo');
-    expect(peticion.request.body).toMatchObject({ nombre: 'Catastro 2026' });
+    expect(peticion.request.body).toMatchObject({ nombre: 'Encuesta 2026' });
     peticion.flush({ ok: true, data: { fuente: fuenteGuardada } });
 
     expect(navegar).toHaveBeenCalledWith('/fuentes', { state: { aviso: expect.any(String) } });

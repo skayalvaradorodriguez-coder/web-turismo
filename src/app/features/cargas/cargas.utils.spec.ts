@@ -67,7 +67,7 @@ describe('extensionDe y esArchivoPermitido', () => {
   });
 
   it('acepta solo los formatos permitidos', () => {
-    expect(esArchivoPermitido('catastro.csv')).toBe(true);
+    expect(esArchivoPermitido('datos.csv')).toBe(true);
     expect(esArchivoPermitido('foto.JPG')).toBe(true);
     expect(esArchivoPermitido('programa.exe')).toBe(false);
   });

@@ -6,7 +6,7 @@ const fuente = (id: number, nombre: string, institucion: string, codigo: string,
   ({ id, nombre, institucion, codigo, estado }) as Fuente;
 
 const fuentes = [
-  fuente(1, 'Catastro Turístico', 'Ministerio de Turismo', 'catastro_turistico', 'activa'),
+  fuente(1, 'Encuesta Turística', 'UPSE', 'encuesta_feriados', 'activa'),
   fuente(2, 'Siete playas', 'Dirección de Turismo', 'siete_playas', 'inactiva'),
   fuente(3, 'Observatorio', 'UPSE', 'observatorio_upse', 'activa'),
 ];
@@ -22,17 +22,17 @@ describe('filtrarFuentes', () => {
   });
 
   it('busca sin importar mayusculas ni tildes', () => {
-    expect(filtrarFuentes(fuentes, 'TURISTICO', 'todas').map((f) => f.id)).toEqual([1]);
+    expect(filtrarFuentes(fuentes, 'TURISTICA', 'todas').map((f) => f.id)).toEqual([1]);
     expect(filtrarFuentes(fuentes, 'direccion', 'todas').map((f) => f.id)).toEqual([2]);
   });
 
   it('busca tambien por codigo e institucion', () => {
     expect(filtrarFuentes(fuentes, 'observatorio_upse', 'todas').map((f) => f.id)).toEqual([3]);
-    expect(filtrarFuentes(fuentes, 'upse', 'todas').map((f) => f.id)).toEqual([3]);
+    expect(filtrarFuentes(fuentes, 'upse', 'todas').map((f) => f.id)).toEqual([1, 3]);
   });
 
   it('combina texto y estado', () => {
-    expect(filtrarFuentes(fuentes, 'turismo', 'activa').map((f) => f.id)).toEqual([1]);
+    expect(filtrarFuentes(fuentes, 'encuesta', 'activa').map((f) => f.id)).toEqual([1]);
   });
 
   it('un texto sin coincidencias devuelve lista vacia', () => {

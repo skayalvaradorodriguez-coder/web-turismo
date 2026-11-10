@@ -44,19 +44,19 @@ function preparar(rol: string, lista: Fuente[]) {
 
 describe('FuentesListaPage (activar y desactivar)', () => {
   it('una fuente activa ofrece Desactivar y una inactiva ofrece Activar', () => {
-    const { boton } = preparar('admin', [fuente(1, 'Catastro', 'activa'), fuente(2, 'Playas', 'inactiva')]);
+    const { boton } = preparar('admin', [fuente(1, 'Encuesta', 'activa'), fuente(2, 'Playas', 'inactiva')]);
     expect(boton('Desactivar')).toBeTruthy();
     expect(boton('Activar')).toBeTruthy();
   });
 
   it('el investigador no ve botones de estado', () => {
-    const { boton } = preparar('investigador', [fuente(1, 'Catastro', 'activa'), fuente(2, 'Playas', 'inactiva')]);
+    const { boton } = preparar('investigador', [fuente(1, 'Encuesta', 'activa'), fuente(2, 'Playas', 'inactiva')]);
     expect(boton('Desactivar')).toBeUndefined();
     expect(boton('Activar')).toBeUndefined();
   });
 
   it('Desactivar pide confirmacion y todavia no llama a la API', () => {
-    const { http, texto, pulsar } = preparar('admin', [fuente(1, 'Catastro', 'activa')]);
+    const { http, texto, pulsar } = preparar('admin', [fuente(1, 'Encuesta', 'activa')]);
     pulsar('Desactivar');
 
     expect(texto()).toContain('¿Desactivar esta fuente?');
@@ -64,7 +64,7 @@ describe('FuentesListaPage (activar y desactivar)', () => {
   });
 
   it('cancelar cierra la confirmacion sin llamar a la API', () => {
-    const { http, texto, boton, pulsar } = preparar('admin', [fuente(1, 'Catastro', 'activa')]);
+    const { http, texto, boton, pulsar } = preparar('admin', [fuente(1, 'Encuesta', 'activa')]);
     pulsar('Desactivar');
     pulsar('Cancelar');
 
@@ -74,14 +74,14 @@ describe('FuentesListaPage (activar y desactivar)', () => {
   });
 
   it('confirmar desactiva la fuente, actualiza la tarjeta y avisa', () => {
-    const { fixture, http, texto, boton, pulsar, insignia } = preparar('admin', [fuente(1, 'Catastro', 'activa')]);
+    const { fixture, http, texto, boton, pulsar, insignia } = preparar('admin', [fuente(1, 'Encuesta', 'activa')]);
     pulsar('Desactivar');
     pulsar('Sí, desactivar');
 
     const peticion = http.expectOne(`${API_URL}/fuentes/1/estado`);
     expect(peticion.request.method).toBe('PATCH');
     expect(peticion.request.body).toEqual({ estado: 'inactiva' });
-    peticion.flush({ ok: true, data: { fuente: fuente(1, 'Catastro', 'inactiva') } });
+    peticion.flush({ ok: true, data: { fuente: fuente(1, 'Encuesta', 'inactiva') } });
     fixture.detectChanges();
 
     expect(insignia()).toBe('Inactiva');
@@ -103,7 +103,7 @@ describe('FuentesListaPage (activar y desactivar)', () => {
   });
 
   it('si la API falla muestra el mensaje en la tarjeta y cierra la confirmacion', () => {
-    const { fixture, http, texto, pulsar } = preparar('admin', [fuente(1, 'Catastro', 'activa')]);
+    const { fixture, http, texto, pulsar } = preparar('admin', [fuente(1, 'Encuesta', 'activa')]);
     pulsar('Desactivar');
     pulsar('Sí, desactivar');
 
