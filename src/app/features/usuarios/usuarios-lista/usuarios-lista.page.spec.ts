@@ -39,9 +39,11 @@ describe('UsuariosListaPage', () => {
   const raiz = (f: ComponentFixture<unknown>) => f.nativeElement as HTMLElement;
   const contenido = (f: ComponentFixture<unknown>): string => raiz(f).textContent ?? '';
   const acciones = (f: ComponentFixture<unknown>): string[] =>
-    Array.from(raiz(f).querySelectorAll('.usuario button')).map((b) => b.textContent?.trim() ?? '');
+    Array.from(raiz(f).querySelectorAll('.usuario button')).map((b) => b.getAttribute('aria-label') ?? '');
   const boton = (f: ComponentFixture<unknown>, texto: string) =>
-    Array.from(raiz(f).querySelectorAll('button')).find((b) => b.textContent?.trim() === texto);
+    Array.from(raiz(f).querySelectorAll('button')).find(
+      (b) => b.textContent?.trim() === texto || b.getAttribute('aria-label') === texto,
+    );
 
   it('muestra cada cuenta con su nombre, rol y estado', () => {
     const f = crear([usuario(), usuario({ id: 10, nombres: 'Luis', apellidos: 'Mora', rol: 'investigador', activo: false })]);
@@ -50,14 +52,14 @@ describe('UsuariosListaPage', () => {
     expect(contenido(f)).toContain('Luis Mora');
     expect(contenido(f)).toContain('Externo');
     expect(contenido(f)).toContain('Investigador');
-    expect(contenido(f)).toContain('Inactiva');
+    expect(contenido(f)).toContain('Eliminada');
   });
 
-  it('el super administrador ve cambiar rol y desactivar en otras cuentas, y nada en la suya', () => {
+  it('el super administrador ve cambiar rol y eliminar en otras cuentas, y nada en la suya', () => {
     actor = { id: 1, rol: 'super_admin' };
     const f = crear([usuario({ id: 1, nombres: 'Yo', rol: 'super_admin' }), usuario()]);
 
-    expect(acciones(f)).toEqual(['Cambiar rol', 'Desactivar']);
+    expect(acciones(f)).toEqual(['Cambiar rol', 'Eliminar']);
   });
 
   it('el admin no ve acciones sobre otro admin ni sobre un super administrador', () => {
@@ -72,7 +74,7 @@ describe('UsuariosListaPage', () => {
 
     boton(f, 'Cambiar rol')?.click();
     f.detectChanges();
-    const select = raiz(f).querySelector<HTMLSelectElement>('.usuario select');
+    const select = raiz(f).querySelector<HTMLSelectElement>('.dialogo select');
     expect(Array.from(select?.options ?? []).map((o) => o.value)).toEqual(['', 'investigador']);
     expect(boton(f, 'Guardar')?.disabled).toBe(true);
 
@@ -88,35 +90,35 @@ describe('UsuariosListaPage', () => {
 
     expect(api.cambiarRol).toHaveBeenCalledWith(9, 'investigador');
     expect(contenido(f)).toContain('Rol de Ana Pérez cambiado a Investigador.');
-    expect(raiz(f).querySelector('.usuario select')).toBeNull();
+    expect(raiz(f).querySelector('.dialogo')).toBeNull();
   });
 
-  it('desactivar pide confirmación antes de llamar a la API', () => {
+  it('eliminar pide confirmación antes de llamar a la API y saca la cuenta de la lista', () => {
     const f = crear([usuario()]);
     api.cambiarEstado.mockReturnValue(of(usuario({ activo: false })));
 
-    boton(f, 'Desactivar')?.click();
+    boton(f, 'Eliminar')?.click();
     f.detectChanges();
     expect(api.cambiarEstado).not.toHaveBeenCalled();
-    expect(acciones(f)).toEqual(['Sí, desactivar', 'Cancelar']);
+    expect(raiz(f).querySelector('.dialogo')).not.toBeNull();
 
-    boton(f, 'Sí, desactivar')?.click();
+    boton(f, 'Sí, eliminar')?.click();
     f.detectChanges();
 
     expect(api.cambiarEstado).toHaveBeenCalledWith(9, 'inactiva');
-    expect(contenido(f)).toContain('Cuenta de Ana Pérez desactivada.');
-    expect(acciones(f)).toEqual(['Cambiar rol', 'Activar']);
+    expect(contenido(f)).toContain('Cuenta de Ana Pérez eliminada de la lista.');
+    expect(raiz(f).querySelector('.usuario')).toBeNull();
   });
 
-  it('activar una cuenta va directo, sin confirmación', () => {
+  it('restaurar una cuenta va directo, sin confirmación', () => {
     const f = crear([usuario({ activo: false })]);
     api.cambiarEstado.mockReturnValue(of(usuario()));
 
-    boton(f, 'Activar')?.click();
+    boton(f, 'Restaurar')?.click();
     f.detectChanges();
 
     expect(api.cambiarEstado).toHaveBeenCalledWith(9, 'activa');
-    expect(contenido(f)).toContain('Cuenta de Ana Pérez activada.');
+    expect(contenido(f)).toContain('Cuenta de Ana Pérez restaurada.');
   });
 
   it('si la API responde con error, muestra su mensaje dentro de esa cuenta', () => {
@@ -124,7 +126,7 @@ describe('UsuariosListaPage', () => {
     const error = new HttpErrorResponse({ status: 403, error: { ok: false, code: 'PERMISO_INSUFICIENTE', message: 'No tienes permiso para esto' } });
     api.cambiarEstado.mockReturnValue(throwError(() => error));
 
-    boton(f, 'Activar')?.click();
+    boton(f, 'Restaurar')?.click();
     f.detectChanges();
 
     expect(raiz(f).querySelector('.usuario .error')?.textContent).toContain('No tienes permiso para esto');

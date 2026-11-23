@@ -1,15 +1,7 @@
 <div class="shell" [class.shell--abierto]="menuAbierto()">
   <aside id="menu-principal" class="menu" aria-label="Menú principal">
     <div class="menu__arriba">
-      <div class="menu__marca">
-        <span class="eyebrow"><span class="eyebrow__linea"></span>Santa Elena</span>
-        <img
-          class="menu__logo"
-          src="assets/brand/ots-logo.png"
-          alt="Observatorio Turístico Sostenible · UPSE"
-        />
-        <span class="menu__sub">Plataforma de datos</span>
-      </div>
+      <app-marca class="menu__marca" />
 
       <nav class="menu__nav" aria-label="Principal">
         @for (item of menu(); track item.ruta) {
@@ -59,7 +51,7 @@
             <path d="M4 7h16M4 12h16M4 17h16" />
           </svg>
         </button>
-        <span class="barra__titulo">Portal institucional</span>
+        <span class="barra__titulo">Provincia de Santa Elena</span>
       </div>
 
       <button

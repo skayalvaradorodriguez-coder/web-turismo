@@ -1,8 +1,10 @@
-/* Observatorio Turistico Sostenible - sistema de diseno "Pacifico y Sol" */
+/* Pacifico Abierto - sistema de diseno "Pacifico y Sol" */
 
 :root {
-    --font-display: 'Fraunces Variable', Georgia, 'Times New Roman', serif;
     --font-body: 'Plus Jakarta Sans Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    /* Titulos y cifras: la misma familia del texto, mas limpia para datos. Fraunces queda solo para la marca. */
+    --font-display: var(--font-body);
+    --font-brand: 'Fraunces Variable', Georgia, 'Times New Roman', serif;
 
     /* Modo claro */
     --bg: #f0f9f9;

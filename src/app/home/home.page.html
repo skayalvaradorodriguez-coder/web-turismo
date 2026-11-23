@@ -1,10 +1,93 @@
 @if (usuario(); as u) {
   <section class="inicio">
-    <p class="inicio__eyebrow"><span></span>Santa Elena</p>
-    <h1 class="inicio__titulo">Hola, <em>{{ u.nombres }}</em></h1>
-    <p class="inicio__texto">
-      Esta es tu página de inicio. Aquí irán el resumen de cargas y las cifras de las fuentes a medida que
-      construyamos cada módulo.
-    </p>
+    <header class="inicio__cabecera">
+      <div>
+        <p class="inicio__eyebrow"><span></span>Santa Elena</p>
+        <h1 class="inicio__titulo">Hola, <em>{{ u.nombres }}</em></h1>
+        <p class="inicio__texto">Un resumen de lo que hay en la plataforma y de lo que necesita tu atención.</p>
+      </div>
+      @if (esGestion()) {
+        <a class="boton boton--primario" routerLink="/cargas/nueva">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+          Nueva carga
+        </a>
+      }
+    </header>
+
+    @if (error(); as mensaje) {
+      <p class="aviso aviso--error" role="alert">{{ mensaje }}</p>
+    }
+
+    <div class="kpis" aria-label="Indicadores principales">
+      <article class="kpi">
+        <span class="kpi__etiqueta">Fuentes activas</span>
+        <strong class="kpi__valor">{{ cargando() ? '–' : fuentesActivas() }}</strong>
+        <a class="kpi__enlace" routerLink="/fuentes">Ver fuentes</a>
+      </article>
+      <article class="kpi">
+        <span class="kpi__etiqueta">Cargas recibidas</span>
+        <strong class="kpi__valor">{{ cargando() ? '–' : totalCargas() }}</strong>
+        <a class="kpi__enlace" routerLink="/cargas">Ver cargas</a>
+      </article>
+      <article class="kpi">
+        <span class="kpi__etiqueta">Por revisar o procesar</span>
+        <strong class="kpi__valor kpi__valor--sol">{{ cargando() ? '–' : porRevisar() }}</strong>
+        <span class="kpi__nota">Recibidas o validadas</span>
+      </article>
+      <article class="kpi">
+        <span class="kpi__etiqueta">Rechazadas</span>
+        <strong class="kpi__valor">{{ cargando() ? '–' : rechazadas() }}</strong>
+        <span class="kpi__nota">Con su motivo guardado</span>
+      </article>
+    </div>
+
+    <section class="panel" aria-labelledby="recorrido">
+      <h2 id="recorrido" class="panel__titulo">Recorrido de los datos</h2>
+      <p class="panel__texto">Cada carga avanza por pasos controlados. El archivo original nunca se modifica.</p>
+      <ol class="pasos">
+        @for (paso of pasos(); track paso.etiqueta) {
+          <li class="paso">
+            <div class="paso__cabecera">
+              <strong>{{ paso.etiqueta }}</strong>
+              <span class="paso__cantidad">{{ paso.cantidad }}</span>
+            </div>
+            <div class="paso__pista"><div class="paso__barra" [style.width.%]="paso.ancho"></div></div>
+            <span class="paso__ayuda">{{ paso.ayuda }}</span>
+          </li>
+        }
+      </ol>
+    </section>
+
+    <section class="panel" aria-labelledby="recientes">
+      <div class="panel__fila">
+        <h2 id="recientes" class="panel__titulo">Cargas recientes</h2>
+        <a class="boton boton--suave" routerLink="/cargas">Ver todas</a>
+      </div>
+
+      @if (cargando()) {
+        <p class="vacio">Cargando…</p>
+      } @else if (recientes().length === 0) {
+        <p class="vacio">Todavía no hay cargas. Cuando se reciba el primer archivo aparecerá aquí.</p>
+      } @else {
+        <div class="tabla-caja">
+          <table class="tabla">
+            <thead>
+              <tr><th>N.º</th><th>Fuente</th><th>Período</th><th>Estado</th><th><span class="sr-only">Acción</span></th></tr>
+            </thead>
+            <tbody>
+              @for (carga of recientes(); track carga.id) {
+                <tr>
+                  <td><strong>#{{ carga.id }}</strong></td>
+                  <td>{{ nombreFuente(carga) }}</td>
+                  <td>{{ periodo(carga) }}</td>
+                  <td><span class="estado estado--{{ carga.estado }}">{{ etiqueta(carga.estado) }}</span></td>
+                  <td class="tabla__accion"><a class="boton boton--suave" [routerLink]="['/cargas', carga.id]">Abrir</a></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
   </section>
 }

@@ -36,7 +36,7 @@ export class UsuariosListaPage implements OnInit {
   protected readonly aviso = signal<string | null>(null);
 
   protected readonly filtroRol = signal('');
-  protected readonly filtroEstado = signal<'' | EstadoUsuario>('');
+  protected readonly filtroEstado = signal<'' | EstadoUsuario>('activa');
   protected readonly texto = new FormControl('', { nonNullable: true });
   private readonly textoAplicado = signal('');
   protected readonly pagina = signal(1);
@@ -56,6 +56,21 @@ export class UsuariosListaPage implements OnInit {
   ngOnInit(): void {
     this.cargar();
   }
+
+  protected iniciales(u: UsuarioGestion): string {
+    return `${u.nombres.charAt(0)}${u.apellidos.charAt(0)}`.toUpperCase();
+  }
+
+  protected cerrarDialogo(): void {
+    this.editandoRolId.set(null);
+    this.confirmandoId.set(null);
+    this.errorAccion.set(null);
+  }
+
+  protected usuarioDelDialogo = computed(() => {
+    const id = this.editandoRolId() ?? this.confirmandoId();
+    return id === null ? null : (this.usuarios().find((u) => u.id === id) ?? null);
+  });
 
   protected rol(codigo: string): string {
     return ETIQUETA_ROL[codigo] ?? codigo;
@@ -162,8 +177,8 @@ export class UsuariosListaPage implements OnInit {
       this.api.cambiarEstado(usuario.id, estado),
       (nuevo) =>
         estado === 'activa'
-          ? `Cuenta de ${nombreCompleto(nuevo)} activada.`
-          : `Cuenta de ${nombreCompleto(nuevo)} desactivada. Sus sesiones se cerraron.`,
+          ? `Cuenta de ${nombreCompleto(nuevo)} restaurada.`
+          : `Cuenta de ${nombreCompleto(nuevo)} eliminada de la lista. Sus sesiones se cerraron y su historial se conserva.`,
       'No se pudo cambiar el estado de la cuenta. Inténtalo de nuevo.',
     );
   }
@@ -187,7 +202,12 @@ export class UsuariosListaPage implements OnInit {
       )
       .subscribe({
         next: (nuevo) => {
-          this.usuarios.update((lista) => lista.map((u) => (u.id === nuevo.id ? nuevo : u)));
+          // si el filtro de estado ya no la incluye (por ejemplo, se acaba de eliminar), sale de la lista
+          const sigue = this.filtroEstado() === '' || (this.filtroEstado() === 'activa') === nuevo.activo;
+          this.usuarios.update((lista) =>
+            sigue ? lista.map((u) => (u.id === nuevo.id ? nuevo : u)) : lista.filter((u) => u.id !== nuevo.id),
+          );
+          if (!sigue) this.total.update((t) => Math.max(0, t - 1));
           this.editandoRolId.set(null);
           this.confirmandoId.set(null);
           this.aviso.set(aviso(nuevo));

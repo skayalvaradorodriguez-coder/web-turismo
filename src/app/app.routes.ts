@@ -3,7 +3,7 @@ import { authGuard, guestGuard } from '@app/core/guards/auth.guard';
 import { rolGuard } from '@app/core/guards/roles.guard';
 import { ROLES_CONSULTA, ROLES_GESTION } from '@app/core/config/roles';
 
-const MARCA = 'Observatorio Turístico Sostenible';
+const MARCA = 'Pacífico Abierto';
 
 export const routes: Routes = [
   // Debe ir primero: si no, la raiz "/" coincide con el marco de acceso y se queda sin formulario

@@ -378,3 +378,172 @@
   color: var(--danger);
   font-size: 14px;
 }
+/* ---------- Rediseño: cabecera, tarjeta y tabla ---------- */
+.cabecera {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.titulo {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-size: clamp(28px, 4.5vw, 38px);
+}
+
+.tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+}
+
+.tabla-caja {
+  overflow-x: auto;
+}
+
+.tabla {
+  width: 100%;
+  min-width: 820px;
+  border-collapse: collapse;
+  font-size: 14px;
+
+  th {
+    text-align: left;
+    padding: 10px 12px;
+    color: var(--ink-soft);
+    font-weight: 700;
+    border-bottom: 1px solid var(--line);
+  }
+
+  td {
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  tbody tr:hover {
+    background: var(--surface-2);
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.tabla__der {
+  text-align: right;
+}
+
+.tabla .fuente__nombre {
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.tabla .fuente__codigo {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.fuente__acciones {
+  display: inline-flex;
+  gap: 8px;
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+}
+
+.icono {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--primary);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.icono:hover:not(:disabled) {
+  background: var(--bg-accent);
+}
+
+.icono--peligro {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--line));
+}
+
+.icono--peligro:hover:not(:disabled) {
+  background: var(--danger-bg);
+}
+
+.icono:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.icono:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.pie-tabla {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
+.velo {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(5, 20, 20, 0.55);
+}
+
+.dialogo {
+  width: min(460px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 24px;
+  border-radius: 20px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-card);
+}
+
+.dialogo__titulo {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.dialogo__texto {
+  margin: 0;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+.dialogo__pie {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}

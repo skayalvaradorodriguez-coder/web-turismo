@@ -24,7 +24,7 @@ export class FuentesListaPage implements OnInit {
   protected readonly cargando = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly texto = signal('');
-  protected readonly estado = signal<FiltroEstado>('todas');
+  protected readonly estado = signal<FiltroEstado>('activa');
   /** Mensaje de exito (llega del formulario en el estado de la navegacion, o de activar/desactivar). */
   protected readonly aviso = signal<string | null>(null);
 
@@ -36,12 +36,16 @@ export class FuentesListaPage implements OnInit {
   protected readonly errorAccion = signal<{ id: number; mensaje: string } | null>(null);
 
   protected readonly esGestion = computed(() => ROLES_GESTION.includes(this.auth.usuario()?.rol ?? ''));
+  protected readonly fuenteDelDialogo = computed(() => {
+    const id = this.confirmandoId();
+    return id === null ? null : (this.fuentes().find((f) => f.id === id) ?? null);
+  });
   protected readonly visibles = computed(() => filtrarFuentes(this.fuentes(), this.texto(), this.estado()));
 
   protected readonly filtros: readonly { valor: FiltroEstado; etiqueta: string }[] = [
     { valor: 'todas', etiqueta: 'Todas' },
     { valor: 'activa', etiqueta: 'Activas' },
-    { valor: 'inactiva', etiqueta: 'Inactivas' },
+    { valor: 'inactiva', etiqueta: 'Eliminadas' },
   ];
 
   constructor() {
@@ -78,7 +82,7 @@ export class FuentesListaPage implements OnInit {
   }
 
   protected etiquetaEstado(estado: EstadoFuente): string {
-    return estado === 'activa' ? 'Activa' : 'Inactiva';
+    return estado === 'activa' ? 'Activa' : 'Eliminada';
   }
 
   protected pedirDesactivar(id: number): void {
@@ -107,7 +111,11 @@ export class FuentesListaPage implements OnInit {
         next: (actualizada) => {
           this.fuentes.update((lista) => lista.map((f) => (f.id === actualizada.id ? actualizada : f)));
           this.confirmandoId.set(null);
-          this.aviso.set(`Fuente "${actualizada.nombre}" ${nuevo === 'activa' ? 'activada' : 'desactivada'}.`);
+          this.aviso.set(
+            nuevo === 'activa'
+              ? `Fuente "${actualizada.nombre}" restaurada.`
+              : `Fuente "${actualizada.nombre}" eliminada de la lista. Sus cargas y su historial se conservan.`,
+          );
         },
         error: (e: unknown) => {
           this.confirmandoId.set(null);

@@ -3,13 +3,14 @@ import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/rou
 import { ETIQUETA_ROL } from '@app/core/config/roles';
 import { menuPara } from '@app/core/config/navegacion';
 import { AuthService } from '@app/core/services/auth.service';
+import { MarcaComponent } from '@app/shared/components/marca/marca.component';
 import { ThemeService } from '@app/core/services/theme.service';
 
 const PANTALLA_GRANDE = '(min-width: 900px)';
 
 @Component({
   selector: 'app-main-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, MarcaComponent],
   templateUrl: './main-shell.component.html',
   styleUrl: './main-shell.component.scss',
 })
