@@ -183,3 +183,23 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+/* ---------- Rediseño: mismo estilo que el resto de pantallas ---------- */
+.pagina {
+  max-width: none;
+}
+
+.titulo {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-size: clamp(28px, 4.5vw, 38px);
+}
+
+.tarjeta {
+  padding: 24px clamp(18px, 3vw, 28px);
+  border-radius: 18px;
+  box-shadow: none;
+}
+
+.tarjeta__franja {
+  display: none;
+}

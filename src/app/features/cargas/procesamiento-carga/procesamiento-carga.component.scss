@@ -134,3 +134,18 @@
   outline: 3px solid var(--focus);
   outline-offset: 2px;
 }
+/* ---------- Rediseño ---------- */
+.tarjeta {
+  padding: 22px clamp(16px, 3vw, 24px);
+  border-radius: 18px;
+  box-shadow: none;
+}
+
+.tarjeta__franja {
+  display: none;
+}
+
+.tarjeta__titulo {
+  font-weight: 700;
+  font-size: 19px;
+}
