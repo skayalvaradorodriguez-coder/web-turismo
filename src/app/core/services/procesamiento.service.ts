@@ -3,7 +3,13 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { API_URL } from '@app/core/config/api.config';
 import type { ApiOk } from '@app/core/models/api.models';
-import type { FiltroHallazgos, PaginaHallazgos, Procesamiento } from '@app/core/models/procesamiento.models';
+import type {
+  FiltroHallazgos,
+  PaginaHallazgos,
+  Procesamiento,
+  ResultadoEjecucion,
+  TipoProcesamiento,
+} from '@app/core/models/procesamiento.models';
 
 @Injectable({ providedIn: 'root' })
 export class ProcesamientoService {
@@ -15,6 +21,13 @@ export class ProcesamientoService {
     return this.http
       .get<ApiOk<{ procesamientos: Procesamiento[] }>>(`${this.url}/${cargaId}/procesamientos`)
       .pipe(map((respuesta) => respuesta.data.procesamientos));
+  }
+
+  /** Valida o procesa un archivo de la carga. La API guarda el resultado y avanza el estado de la carga. */
+  ejecutar(cargaId: number, tipo: TipoProcesamiento, archivoId: number): Observable<ResultadoEjecucion> {
+    return this.http
+      .post<ApiOk<ResultadoEjecucion>>(`${this.url}/${cargaId}/procesamientos`, { tipo, archivoId })
+      .pipe(map((respuesta) => respuesta.data));
   }
 
   hallazgos(cargaId: number, procesamientoId: number, filtro: FiltroHallazgos = {}): Observable<PaginaHallazgos> {

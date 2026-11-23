@@ -234,3 +234,80 @@ a:focus-visible {
     transition: none;
   }
 }
+
+/* ---------- Pantalla grande: el menú se oculta y se muestra con la pestaña del borde ---------- */
+.asa {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .menu {
+    display: flex;
+    width: 0;
+    padding-inline: 0;
+    overflow: hidden;
+    visibility: hidden;
+    transition:
+      width 0.25s ease,
+      padding 0.25s ease,
+      visibility 0.25s;
+  }
+
+  .shell--abierto .menu {
+    width: 280px;
+    padding-inline: 16px;
+    visibility: visible;
+  }
+
+  .barra__boton--menu {
+    display: none;
+  }
+
+  .asa {
+    position: absolute;
+    top: 16px;
+    left: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid var(--line-strong);
+    border-left: 0;
+    border-radius: 0 16px 16px 0;
+    background: var(--surface);
+    color: var(--primary);
+    box-shadow: 0 6px 18px -6px rgba(19, 78, 74, 0.35);
+    cursor: pointer;
+    transition:
+      left 0.25s ease,
+      background 0.15s ease;
+  }
+
+  .asa:hover {
+    background: var(--bg-accent);
+  }
+
+  .asa svg {
+    transition: transform 0.25s ease;
+  }
+
+  /* abierto: la pestaña queda pegada al borde del menú y la flecha apunta a la izquierda; cerrado: apunta a la derecha */
+  .shell--abierto .asa {
+    left: 280px;
+  }
+
+  .shell:not(.shell--abierto) .asa svg {
+    transform: rotate(180deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu,
+  .asa,
+  .asa svg {
+    transition: none;
+  }
+}

@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
-  max-width: 920px;
+  max-width: none;
 }
 
 .volver {
@@ -311,4 +311,125 @@
 .archivo__huella span {
   margin-right: 8px;
   font-weight: 700;
+}
+/* ---------- Rediseño: acciones, pasos y pestañas ---------- */
+.cabecera {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.titulo {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.texto {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0 0;
+  color: var(--ink-soft);
+}
+
+.barra-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pasos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0;
+  padding: 18px 20px;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+}
+
+.paso {
+  flex: 1 1 180px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--ink-soft);
+}
+
+.paso__punto {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--bg-accent);
+  color: var(--ink-soft);
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.paso--hecho .paso__punto {
+  background: var(--primary);
+  color: var(--primary-ink);
+}
+
+.paso--actual .paso__punto {
+  background: var(--sun);
+  color: #1f3a3a;
+}
+
+.paso__textos {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  font-size: 12px;
+
+  strong {
+    font-size: 14px;
+    color: var(--ink);
+  }
+}
+
+.pestanas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  border-bottom: 1px solid var(--line);
+}
+
+.pestana {
+  min-height: 46px;
+  padding: 0 18px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: var(--ink-soft);
+  font: 700 14px var(--font-body);
+  cursor: pointer;
+}
+
+.pestana--activa {
+  color: var(--ink);
+  border-bottom-color: var(--sun);
+}
+
+.pestana:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.huella summary {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--link);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
 }

@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, computed, inject, input, signal } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs';
 import type { Procesamiento } from '@app/core/models/procesamiento.models';
@@ -20,11 +20,13 @@ import {
   templateUrl: './procesamiento-carga.component.html',
   styleUrl: './procesamiento-carga.component.scss',
 })
-export class ProcesamientoCargaComponent implements OnInit {
+export class ProcesamientoCargaComponent {
   private readonly api = inject(ProcesamientoService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly cargaId = input.required<number>();
+  /** Cambia cada vez que se valida o procesa desde la página: vuelve a pedir el historial. */
+  readonly version = input(0);
 
   protected readonly procesamientos = signal<Procesamiento[]>([]);
   protected readonly cargandoLista = signal(false);
@@ -39,8 +41,11 @@ export class ProcesamientoCargaComponent implements OnInit {
   protected readonly fechaHora = formatearFechaHora;
   protected readonly conteo = textoConteo;
 
-  ngOnInit(): void {
-    this.cargarHistorial();
+  constructor() {
+    effect(() => {
+      this.version();
+      untracked(() => this.cargarHistorial());
+    });
   }
 
   protected alternarHallazgos(procesamiento: Procesamiento): void {
@@ -48,7 +53,8 @@ export class ProcesamientoCargaComponent implements OnInit {
   }
 
   protected tieneHallazgos(procesamiento: Procesamiento): boolean {
-    return procesamiento.totalErrores + procesamiento.totalAlertas > 0;
+    // un procesamiento completado siempre puede tener cambios registrados, aunque no tenga errores ni alertas
+    return procesamiento.totalErrores + procesamiento.totalAlertas > 0 || (procesamiento.tipo === 'procesamiento' && procesamiento.estado === 'completado');
   }
 
   private cargarHistorial(): void {

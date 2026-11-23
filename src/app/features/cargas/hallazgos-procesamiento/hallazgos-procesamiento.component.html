@@ -33,20 +33,23 @@
           <li class="hallazgo" [attr.data-severidad]="h.severidad">
             <div class="hallazgo__cabecera">
               <span class="chip" [attr.data-severidad]="h.severidad">{{ etiquetaSeveridad(h.severidad) }}</span>
+              <strong class="hallazgo__regla">{{ nombreRegla(h.regla) }}</strong>
               <span class="hallazgo__lugar">{{ ubicacion(h) }}</span>
-              <span class="hallazgo__regla">{{ nombreRegla(h.regla) }}</span>
             </div>
             <p class="hallazgo__mensaje">{{ h.mensaje }}</p>
-            @if (h.valorOriginal !== null || h.valorCorregido !== null) {
-              <p class="hallazgo__valores">
+            <details class="hallazgo__tecnico">
+              <summary>Ver detalle técnico</summary>
+              <dl class="tecnico">
+                <div><dt>Regla</dt><dd><code>{{ h.regla }}</code></dd></div>
+                <div><dt>Ubicación</dt><dd>{{ ubicacion(h) }}</dd></div>
                 @if (h.valorOriginal !== null) {
-                  <span>Original: <code>{{ valor(h.valorOriginal) }}</code></span>
+                  <div><dt>Valor original</dt><dd><code>{{ valor(h.valorOriginal) }}</code></dd></div>
                 }
                 @if (h.valorCorregido !== null) {
-                  <span>Corregido: <code>{{ valor(h.valorCorregido) }}</code></span>
+                  <div><dt>Valor nuevo</dt><dd><code>{{ valor(h.valorCorregido) }}</code></dd></div>
                 }
-              </p>
-            }
+              </dl>
+            </details>
           </li>
         }
       </ul>

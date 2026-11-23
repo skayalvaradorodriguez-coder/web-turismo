@@ -42,6 +42,7 @@ export class HallazgosProcesamientoComponent implements OnInit {
     { valor: null, texto: 'Todos' },
     { valor: 'error', texto: 'Errores' },
     { valor: 'alerta', texto: 'Alertas' },
+    { valor: 'cambio', texto: 'Cambios' },
   ];
 
   protected readonly etiquetaSeveridad = etiquetaSeveridad;

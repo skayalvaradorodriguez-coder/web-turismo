@@ -34,6 +34,20 @@
     </div>
   </aside>
 
+  <button
+    type="button"
+    class="asa"
+    aria-controls="menu-principal"
+    [attr.aria-expanded]="menuAbierto()"
+    [attr.aria-label]="menuAbierto() ? 'Ocultar el menú' : 'Mostrar el menú'"
+    [attr.title]="menuAbierto() ? 'Ocultar el menú' : 'Mostrar el menú'"
+    (click)="alternarMenu()"
+  >
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M15 5l-7 7 7 7" />
+    </svg>
+  </button>
+
   <button type="button" class="shell__fondo" aria-label="Cerrar el menú" tabindex="-1" (click)="menuAbierto.set(false)"></button>
 
   <div class="principal">
@@ -41,7 +55,7 @@
       <div class="barra__izq">
         <button
           type="button"
-          class="barra__boton"
+          class="barra__boton barra__boton--menu"
           aria-label="Mostrar u ocultar el menú"
           aria-controls="menu-principal"
           [attr.aria-expanded]="menuAbierto()"

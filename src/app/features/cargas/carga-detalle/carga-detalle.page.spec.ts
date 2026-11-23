@@ -44,15 +44,19 @@ function preparar(opciones: { rol?: string; id?: string } = {}) {
   const raiz = fixture.nativeElement as HTMLElement;
   const texto = () => raiz.textContent ?? '';
   const boton = (etiqueta: string) =>
-    Array.from(raiz.querySelectorAll('button')).find((b) => b.textContent?.trim() === etiqueta) as HTMLButtonElement | undefined;
+    Array.from(raiz.querySelectorAll('button')).find(
+      (b) => b.textContent?.trim() === etiqueta || b.getAttribute('aria-label') === etiqueta,
+    ) as HTMLButtonElement | undefined;
+  const abrirPestana = (nombre: string) => {
+    boton(nombre)?.click();
+    fixture.detectChanges();
+  };
   const responder = (cuerpo: DetalleCarga = detalle()) => {
     http.expectOne(URL_CARGA).flush({ ok: true, data: cuerpo });
     http.expectOne(URL_FUENTE).flush({ ok: true, data: { fuente: { id: 1, nombre: 'Fuente de prueba' } } });
     fixture.detectChanges();
-    http.expectOne(`${URL_CARGA}/procesamientos`).flush({ ok: true, data: { procesamientos: [] } });
-    fixture.detectChanges();
   };
-  return { fixture, http, raiz, texto, boton, responder, pagina: fixture.componentInstance };
+  return { fixture, http, raiz, texto, boton, abrirPestana, responder, pagina: fixture.componentInstance };
 }
 
 describe('CargaDetallePage', () => {
@@ -63,7 +67,7 @@ describe('CargaDetallePage', () => {
   });
 
   it('muestra el resumen, el archivo con su huella y los metadatos', () => {
-    const { raiz, texto, responder } = preparar();
+    const { raiz, texto, responder, abrirPestana } = preparar();
     responder();
 
     expect(texto()).toContain('Carga #5');
@@ -71,12 +75,51 @@ describe('CargaDetallePage', () => {
     expect(raiz.querySelector('.insignia')?.textContent?.trim()).toBe('Recibida');
     expect(texto()).toContain('15 oct 2026 – 31 oct 2026');
     expect(texto()).toContain('Nivel 1 · Guardada y catalogada');
+    expect(texto()).toContain('cobertura');
+    expect(texto()).toContain('Provincia');
+
+    abrirPestana('Archivos');
     expect(texto()).toContain('prueba_carga.csv');
     expect(texto()).toContain('Vigente');
     expect(texto()).toContain('2,0 KB');
     expect(texto()).toContain('abc123def456');
-    expect(texto()).toContain('cobertura');
-    expect(texto()).toContain('Provincia');
+  });
+
+  it('muestra los pasos del recorrido y marca el actual', () => {
+    const { raiz, responder } = preparar();
+    responder(detalle('validada'));
+
+    const pasos = Array.from(raiz.querySelectorAll('.paso'));
+    expect(pasos.length).toBe(4);
+    expect(raiz.querySelector('.paso--actual')?.textContent).toContain('Validada');
+    expect(raiz.querySelectorAll('.paso--hecho').length).toBe(2);
+  });
+
+  it('gestion ve Validar en una carga recibida y Procesar solo cuando ya está validada', () => {
+    const recibida = preparar();
+    recibida.responder(detalle('recibida'));
+    expect(recibida.boton('Validar archivo')).toBeTruthy();
+    expect(recibida.boton('Procesar')).toBeUndefined();
+  });
+
+  it('Procesar aparece en una carga validada y envía el archivo vigente a la API', () => {
+    const { fixture, http, boton, responder } = preparar();
+    responder(detalle('validada'));
+    expect(boton('Procesar')).toBeTruthy();
+
+    boton('Procesar')?.click();
+    fixture.detectChanges();
+
+    const peticion = http.expectOne(`${URL_CARGA}/procesamientos`);
+    expect(peticion.request.method).toBe('POST');
+    expect(peticion.request.body).toEqual({ tipo: 'procesamiento', archivoId: 3 });
+  });
+
+  it('el investigador no ve Validar ni Procesar', () => {
+    const { boton, responder } = preparar({ rol: 'investigador' });
+    responder(detalle('validada'));
+    expect(boton('Validar archivo')).toBeUndefined();
+    expect(boton('Procesar')).toBeUndefined();
   });
 
   it('si la carga no existe muestra el mensaje de la API', () => {
@@ -105,7 +148,7 @@ describe('CargaDetallePage', () => {
     Object.defineProperty(URL, 'revokeObjectURL', { value: vi.fn(), configurable: true, writable: true });
     const clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
 
-    boton('Descargar')?.click();
+    boton('Descargar original')?.click();
     fixture.detectChanges();
 
     const peticion = http.expectOne(`${URL_CARGA}/archivos/3/descarga`);
@@ -121,7 +164,7 @@ describe('CargaDetallePage', () => {
     const { fixture, http, texto, boton, responder } = preparar();
     responder();
 
-    boton('Descargar')?.click();
+    boton('Descargar original')?.click();
     fixture.detectChanges();
     http.expectOne(`${URL_CARGA}/archivos/3/descarga`).flush(
       new Blob([JSON.stringify({ ok: false, message: 'El archivo no esta disponible' })]),

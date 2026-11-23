@@ -1,6 +1,6 @@
 export type TipoProcesamiento = 'validacion' | 'procesamiento';
 export type EstadoProcesamiento = 'en_curso' | 'completado' | 'fallido';
-export type SeveridadHallazgo = 'error' | 'alerta';
+export type SeveridadHallazgo = 'error' | 'alerta' | 'cambio';
 
 /** Una ejecucion de validacion o de procesamiento sobre una carga. */
 export interface Procesamiento {
@@ -22,7 +22,7 @@ export interface Procesamiento {
 export interface Hallazgo {
   id: number;
   procesamientoId: number;
-  /** Numero de fila de datos (la primera despues del encabezado es la 1); null si es del archivo completo. */
+  /** Numero de fila como en el archivo (el encabezado es la 1, el primer dato la 2); null si es del archivo completo. */
   fila: number | null;
   columna: string | null;
   regla: string;
@@ -44,6 +44,14 @@ export interface PaginaHallazgos {
   resumen: ResumenHallazgo[];
   pagina: number;
   limite: number;
+}
+
+/** Lo que responde la API al validar o procesar una carga. */
+export interface ResultadoEjecucion {
+  procesamiento: Procesamiento;
+  estructura: { codigo: string; nombre: string } | null;
+  resumen: { filasLeidas: number; filasValidas: number; filasExcluidas: number; errores: number; alertas: number };
+  registrosGuardados: number;
 }
 
 export interface FiltroHallazgos {

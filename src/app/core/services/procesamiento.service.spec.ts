@@ -33,6 +33,24 @@ describe('ProcesamientoService', () => {
 
   afterEach(() => http.verify());
 
+  it('ejecutar envía el tipo y el archivo y devuelve el resultado', () => {
+    const resultado = {
+      procesamiento,
+      estructura: null,
+      resumen: { filasLeidas: 2, filasValidas: 2, filasExcluidas: 0, errores: 0, alertas: 1 },
+      registrosGuardados: 0,
+    };
+    const recibidos: unknown[] = [];
+    servicio.ejecutar(10, 'validacion', 55).subscribe((r) => recibidos.push(r));
+
+    const req = http.expectOne(`${API_URL}/cargas/10/procesamientos`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ tipo: 'validacion', archivoId: 55 });
+    req.flush({ ok: true, data: resultado });
+
+    expect(recibidos).toEqual([resultado]);
+  });
+
   it('listar devuelve solo la lista de procesamientos', () => {
     const recibidos: Procesamiento[][] = [];
     servicio.listar(10).subscribe((lista) => recibidos.push(lista));

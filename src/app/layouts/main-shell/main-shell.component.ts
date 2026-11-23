@@ -7,6 +7,7 @@ import { MarcaComponent } from '@app/shared/components/marca/marca.component';
 import { ThemeService } from '@app/core/services/theme.service';
 
 const PANTALLA_GRANDE = '(min-width: 900px)';
+const CLAVE_MENU = 'pa-menu';
 
 @Component({
   selector: 'app-main-shell',
@@ -30,11 +31,29 @@ export class MainShellComponent {
     return u ? `${u.nombres.charAt(0)}${u.apellidos.charAt(0)}`.toUpperCase() : '';
   });
 
-  /** En pantalla grande el menu arranca abierto; en teléfono, cerrado. */
-  protected readonly menuAbierto = signal(window.matchMedia(PANTALLA_GRANDE).matches);
+  /**
+   * En pantalla grande el menú arranca abierto (o como lo dejó la persona la última vez); en teléfono, cerrado.
+   * Guardar la preferencia es solo una comodidad: si el navegador no deja, se ignora.
+   */
+  protected readonly menuAbierto = signal(this.estadoInicialDelMenu());
+
+  private estadoInicialDelMenu(): boolean {
+    if (!window.matchMedia(PANTALLA_GRANDE).matches) return false;
+    try {
+      return localStorage.getItem(CLAVE_MENU) !== 'cerrado';
+    } catch {
+      return true;
+    }
+  }
 
   protected alternarMenu(): void {
     this.menuAbierto.update((abierto) => !abierto);
+    if (!window.matchMedia(PANTALLA_GRANDE).matches) return;
+    try {
+      localStorage.setItem(CLAVE_MENU, this.menuAbierto() ? 'abierto' : 'cerrado');
+    } catch {
+      /* sin almacenamiento: el menú funciona igual, solo no recuerda la preferencia */
+    }
   }
 
   /** En teléfono el menu es un cajón: se cierra al elegir una opción. */

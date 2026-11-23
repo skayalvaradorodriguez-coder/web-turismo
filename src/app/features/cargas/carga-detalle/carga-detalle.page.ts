@@ -5,9 +5,11 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { ROLES_GESTION } from '@app/core/config/roles';
 import type { ArchivoOriginal, DetalleCarga, EstadoCarga } from '@app/core/models/carga.models';
+import type { TipoProcesamiento } from '@app/core/models/procesamiento.models';
 import { AuthService } from '@app/core/services/auth.service';
 import { CargasService } from '@app/core/services/cargas.service';
 import { FuentesService } from '@app/core/services/fuentes.service';
+import { ProcesamientoService } from '@app/core/services/procesamiento.service';
 import { FieldComponent } from '@app/shared/components/field/field.component';
 import { IconComponent } from '@app/shared/components/icon/icon.component';
 import { mensajeApi } from '@app/shared/utils/api-error';
@@ -17,6 +19,16 @@ import { ProcesamientoCargaComponent } from '../procesamiento-carga/procesamient
 
 /** Estados en los que todavia se puede rechazar (los mismos que acepta la API). */
 const ESTADOS_ABIERTOS: readonly EstadoCarga[] = ['recibida', 'validada'];
+
+type Pestana = 'resumen' | 'archivos' | 'procesamiento';
+
+/** Pasos del recorrido de una carga. "Rechazada" no es un paso: es una salida. */
+const PASOS: readonly { estado: EstadoCarga; ayuda: string }[] = [
+  { estado: 'recibida', ayuda: 'Archivo guardado' },
+  { estado: 'validada', ayuda: 'Estructura revisada' },
+  { estado: 'procesada', ayuda: 'Datos ordenados' },
+  { estado: 'publicada', ayuda: 'Disponible' },
+];
 
 /** La API recorta los espacios: el motivo debe tener al menos 5 caracteres ya recortado. */
 function motivoValido(control: AbstractControl): ValidationErrors | null {
@@ -32,6 +44,7 @@ function motivoValido(control: AbstractControl): ValidationErrors | null {
 export class CargaDetallePage implements OnInit {
   private readonly cargasApi = inject(CargasService);
   private readonly fuentesApi = inject(FuentesService);
+  private readonly procesamientoApi = inject(ProcesamientoService);
   private readonly auth = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly id = Number(inject(ActivatedRoute).snapshot.paramMap.get('id'));
@@ -44,6 +57,18 @@ export class CargaDetallePage implements OnInit {
 
   protected readonly descargandoId = signal<number | null>(null);
   protected readonly errorDescarga = signal<string | null>(null);
+
+  protected readonly pestana = signal<Pestana>('resumen');
+  protected readonly pestanas: readonly { valor: Pestana; texto: string }[] = [
+    { valor: 'resumen', texto: 'Resumen' },
+    { valor: 'archivos', texto: 'Archivos' },
+    { valor: 'procesamiento', texto: 'Validación y procesamiento' },
+  ];
+  /** Lo que se está ejecutando ahora (la API tarda unos segundos en archivos grandes). */
+  protected readonly ejecutando = signal<TipoProcesamiento | null>(null);
+  protected readonly errorEjecucion = signal<string | null>(null);
+  /** Sube cada vez que se ejecuta algo, para que el historial se vuelva a pedir. */
+  protected readonly version = signal(0);
 
   protected readonly rechazando = signal(false);
   protected readonly guardando = signal(false);
@@ -62,6 +87,23 @@ export class CargaDetallePage implements OnInit {
   protected readonly puedeRechazar = computed(
     () => this.esGestion() && ESTADOS_ABIERTOS.includes(this.detalle()?.carga.estado ?? 'publicada'),
   );
+  protected readonly archivoVigente = computed(() => this.detalle()?.archivos.find((a) => a.vigente) ?? null);
+  protected readonly puedeValidar = computed(
+    () => this.esGestion() && this.archivoVigente() !== null && ['recibida', 'validada'].includes(this.detalle()?.carga.estado ?? ''),
+  );
+  protected readonly puedeProcesar = computed(
+    () => this.esGestion() && this.archivoVigente() !== null && this.detalle()?.carga.estado === 'validada',
+  );
+  protected readonly pasos = computed(() => {
+    const estado = this.detalle()?.carga.estado;
+    const actual = PASOS.findIndex((p) => p.estado === estado);
+    return PASOS.map((p, i) => ({
+      etiqueta: etiquetaEstadoCarga(p.estado),
+      ayuda: p.ayuda,
+      hecho: actual >= 0 && i <= actual,
+      actual: i === actual,
+    }));
+  });
   protected readonly tituloFuente = computed(
     () => this.nombreFuente() ?? `Fuente #${this.detalle()?.carga.fuenteId ?? ''}`,
   );
@@ -137,6 +179,39 @@ export class CargaDetallePage implements OnInit {
       .subscribe({
         next: (contenido) => guardarArchivo(contenido, archivo.nombreOriginal),
         error: (e: unknown) => this.errorDescarga.set(mensajeApi(e, 'No se pudo descargar el archivo. Inténtalo de nuevo.')),
+      });
+  }
+
+  /** Valida o procesa el archivo vigente. La API guarda el resultado y avanza el estado de la carga. */
+  ejecutar(tipo: TipoProcesamiento): void {
+    const archivo = this.archivoVigente();
+    if (!archivo || this.ejecutando() !== null) return;
+
+    this.errorEjecucion.set(null);
+    this.aviso.set(null);
+    this.ejecutando.set(tipo);
+
+    this.procesamientoApi
+      .ejecutar(this.id, tipo, archivo.id)
+      .pipe(
+        finalize(() => this.ejecutando.set(null)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (r) => {
+          const verbo = tipo === 'validacion' ? 'La validación' : 'El procesamiento';
+          this.aviso.set(
+            `${verbo} terminó: ${r.resumen.filasLeidas} filas leídas, ${r.resumen.errores} errores y ${r.resumen.alertas} alertas.`,
+          );
+          this.version.update((v) => v + 1);
+          this.pestana.set('procesamiento');
+          // el estado de la carga pudo avanzar: se vuelve a leer
+          this.cargasApi
+            .obtener(this.id)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({ next: (detalle) => this.detalle.set(detalle), error: () => undefined });
+        },
+        error: (e: unknown) => this.errorEjecucion.set(mensajeApi(e, 'No se pudo completar la operación. Inténtalo de nuevo.')),
       });
   }
 

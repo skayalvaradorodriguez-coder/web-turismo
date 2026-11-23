@@ -5,6 +5,12 @@ describe('hallazgos.utils', () => {
   it('nombra la severidad', () => {
     expect(etiquetaSeveridad('error')).toBe('Error');
     expect(etiquetaSeveridad('alerta')).toBe('Alerta');
+    expect(etiquetaSeveridad('cambio')).toBe('Cambio');
+  });
+
+  it('nombreRegla usa un nombre sencillo para las reglas conocidas', () => {
+    expect(nombreRegla('posible_duplicado')).toBe('Posible duplicado');
+    expect(nombreRegla('columna_vacia')).toBe('Columna vacía');
   });
 
   it('nombreRegla cambia los guiones bajos por espacios', () => {
