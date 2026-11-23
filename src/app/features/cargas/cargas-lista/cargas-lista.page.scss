@@ -346,3 +346,101 @@ a.boton {
   outline: 3px solid var(--focus);
   outline-offset: 2px;
 }
+/* ---------- Rediseño: cabecera, tarjeta y tabla ---------- */
+.cabecera {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.titulo {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-size: clamp(28px, 4.5vw, 38px);
+}
+
+.tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+}
+
+.tabla-caja {
+  overflow-x: auto;
+}
+
+.tabla {
+  width: 100%;
+  min-width: 900px;
+  border-collapse: collapse;
+  font-size: 14px;
+
+  th {
+    text-align: left;
+    padding: 10px 12px;
+    color: var(--ink-soft);
+    font-weight: 700;
+    border-bottom: 1px solid var(--line);
+  }
+
+  td {
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+    font-variant-numeric: tabular-nums;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  tbody tr:hover {
+    background: var(--surface-2);
+  }
+
+  p {
+    margin: 4px 0 0;
+  }
+}
+
+.tabla__der {
+  text-align: right;
+}
+
+.tabla .carga__enlace {
+  font-weight: 700;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.tabla .carga__enlace:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+.icono {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.icono:hover {
+  background: var(--bg-accent);
+}
+
+.icono:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}

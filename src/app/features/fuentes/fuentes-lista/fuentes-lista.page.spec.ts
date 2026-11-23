@@ -46,10 +46,14 @@ describe('FuentesListaPage', () => {
       data: { fuentes: [fuente(1, 'Encuesta', 'activa'), fuente(2, 'Playas', 'inactiva')] },
     });
     fixture.detectChanges();
+    // por defecto solo se ven las activas; con "Todas" aparecen también las eliminadas
+    expect(tarjetas()).toBe(1);
+    Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('button')).find((b) => b.textContent?.trim() === 'Todas')?.click();
+    fixture.detectChanges();
 
     expect(tarjetas()).toBe(2);
     expect(texto()).toContain('Encuesta');
-    expect(texto()).toContain('Inactiva');
+    expect(texto()).toContain('Eliminada');
   });
 
   it('sin fuentes muestra el estado vacio', () => {
@@ -79,7 +83,7 @@ describe('FuentesListaPage', () => {
     fixture.detectChanges();
 
     expect(texto()).toContain('Nueva fuente');
-    expect(texto()).toContain('Editar');
+    expect((fixture.nativeElement as HTMLElement).querySelector('[aria-label^="Editar"]')).not.toBeNull();
   });
 
   it('el investigador solo consulta: no ve "Nueva fuente" ni "Editar"', () => {
@@ -88,6 +92,6 @@ describe('FuentesListaPage', () => {
     fixture.detectChanges();
 
     expect(texto()).not.toContain('Nueva fuente');
-    expect(texto()).not.toContain('Editar');
+    expect((fixture.nativeElement as HTMLElement).querySelector('[aria-label^="Editar"]')).toBeNull();
   });
 });

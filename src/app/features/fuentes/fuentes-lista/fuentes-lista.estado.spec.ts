@@ -31,9 +31,14 @@ function preparar(rol: string, lista: Fuente[]) {
   fixture.detectChanges();
 
   const raiz = fixture.nativeElement as HTMLElement;
+  // por defecto solo se ven las activas: se pide ver todas para probar también las eliminadas
+  Array.from(raiz.querySelectorAll('button')).find((b) => b.textContent?.trim() === 'Todas')?.click();
+  fixture.detectChanges();
   const texto = () => raiz.textContent ?? '';
   const boton = (etiqueta: string) =>
-    Array.from(raiz.querySelectorAll('button')).find((b) => b.textContent?.trim() === etiqueta) as HTMLButtonElement | undefined;
+    Array.from(raiz.querySelectorAll('button')).find(
+      (b) => b.textContent?.trim() === etiqueta || b.getAttribute('aria-label') === etiqueta,
+    ) as HTMLButtonElement | undefined;
   const pulsar = (etiqueta: string) => {
     boton(etiqueta)?.click();
     fixture.detectChanges();
@@ -43,40 +48,40 @@ function preparar(rol: string, lista: Fuente[]) {
 }
 
 describe('FuentesListaPage (activar y desactivar)', () => {
-  it('una fuente activa ofrece Desactivar y una inactiva ofrece Activar', () => {
+  it('una fuente activa ofrece Eliminar y una eliminada ofrece Restaurar', () => {
     const { boton } = preparar('admin', [fuente(1, 'Encuesta', 'activa'), fuente(2, 'Playas', 'inactiva')]);
-    expect(boton('Desactivar')).toBeTruthy();
-    expect(boton('Activar')).toBeTruthy();
+    expect(boton('Eliminar Encuesta')).toBeTruthy();
+    expect(boton('Restaurar Playas')).toBeTruthy();
   });
 
   it('el investigador no ve botones de estado', () => {
     const { boton } = preparar('investigador', [fuente(1, 'Encuesta', 'activa'), fuente(2, 'Playas', 'inactiva')]);
-    expect(boton('Desactivar')).toBeUndefined();
-    expect(boton('Activar')).toBeUndefined();
+    expect(boton('Eliminar Encuesta')).toBeUndefined();
+    expect(boton('Restaurar Playas')).toBeUndefined();
   });
 
-  it('Desactivar pide confirmacion y todavia no llama a la API', () => {
+  it('Eliminar pide confirmacion y todavia no llama a la API', () => {
     const { http, texto, pulsar } = preparar('admin', [fuente(1, 'Encuesta', 'activa')]);
-    pulsar('Desactivar');
+    pulsar('Eliminar Encuesta');
 
-    expect(texto()).toContain('¿Desactivar esta fuente?');
+    expect(texto()).toContain('¿Eliminar «Encuesta»?');
     http.expectNone(`${API_URL}/fuentes/1/estado`);
   });
 
   it('cancelar cierra la confirmacion sin llamar a la API', () => {
     const { http, texto, boton, pulsar } = preparar('admin', [fuente(1, 'Encuesta', 'activa')]);
-    pulsar('Desactivar');
+    pulsar('Eliminar Encuesta');
     pulsar('Cancelar');
 
     http.expectNone(`${API_URL}/fuentes/1/estado`);
-    expect(texto()).not.toContain('¿Desactivar esta fuente?');
-    expect(boton('Desactivar')).toBeTruthy();
+    expect(texto()).not.toContain('¿Eliminar «Encuesta»?');
+    expect(boton('Eliminar Encuesta')).toBeTruthy();
   });
 
-  it('confirmar desactiva la fuente, actualiza la tarjeta y avisa', () => {
+  it('confirmar elimina la fuente, actualiza la tarjeta y avisa', () => {
     const { fixture, http, texto, boton, pulsar, insignia } = preparar('admin', [fuente(1, 'Encuesta', 'activa')]);
-    pulsar('Desactivar');
-    pulsar('Sí, desactivar');
+    pulsar('Eliminar Encuesta');
+    pulsar('Sí, eliminar');
 
     const peticion = http.expectOne(`${API_URL}/fuentes/1/estado`);
     expect(peticion.request.method).toBe('PATCH');
@@ -84,14 +89,14 @@ describe('FuentesListaPage (activar y desactivar)', () => {
     peticion.flush({ ok: true, data: { fuente: fuente(1, 'Encuesta', 'inactiva') } });
     fixture.detectChanges();
 
-    expect(insignia()).toBe('Inactiva');
-    expect(texto()).toContain('desactivada');
-    expect(boton('Activar')).toBeTruthy();
+    expect(insignia()).toBe('Eliminada');
+    expect(texto()).toContain('eliminada de la lista');
+    expect(boton('Restaurar Encuesta')).toBeTruthy();
   });
 
-  it('activar no pide confirmacion', () => {
+  it('restaurar no pide confirmacion', () => {
     const { fixture, http, texto, pulsar, insignia } = preparar('admin', [fuente(2, 'Playas', 'inactiva')]);
-    pulsar('Activar');
+    pulsar('Restaurar Playas');
 
     const peticion = http.expectOne(`${API_URL}/fuentes/2/estado`);
     expect(peticion.request.body).toEqual({ estado: 'activa' });
@@ -99,13 +104,13 @@ describe('FuentesListaPage (activar y desactivar)', () => {
     fixture.detectChanges();
 
     expect(insignia()).toBe('Activa');
-    expect(texto()).toContain('activada');
+    expect(texto()).toContain('restaurada');
   });
 
   it('si la API falla muestra el mensaje en la tarjeta y cierra la confirmacion', () => {
     const { fixture, http, texto, pulsar } = preparar('admin', [fuente(1, 'Encuesta', 'activa')]);
-    pulsar('Desactivar');
-    pulsar('Sí, desactivar');
+    pulsar('Eliminar Encuesta');
+    pulsar('Sí, eliminar');
 
     http.expectOne(`${API_URL}/fuentes/1/estado`).flush(
       { ok: false, code: 'PERMISO_INSUFICIENTE', message: 'No tienes permiso para esta acción' },
@@ -114,6 +119,6 @@ describe('FuentesListaPage (activar y desactivar)', () => {
     fixture.detectChanges();
 
     expect(texto()).toContain('No tienes permiso para esta acción');
-    expect(texto()).not.toContain('¿Desactivar esta fuente?');
+    expect(texto()).not.toContain('¿Eliminar «Encuesta»?');
   });
 });
