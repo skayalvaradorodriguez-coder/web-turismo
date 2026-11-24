@@ -1,0 +1,47 @@
+<div class="anillo-caja">
+  <div class="anillo">
+    <svg viewBox="0 0 42 42" aria-hidden="true">
+      <circle class="anillo__fondo" cx="21" cy="21" r="15.915" />
+      @for (g of segmentos(); track $index; let n = $index) {
+        <circle
+          class="seg"
+          cx="21" cy="21" r="15.915"
+          [class.seg--activo]="activa() === n"
+          [class.seg--tenue]="activa() !== null && activa() !== n"
+          [attr.stroke-dasharray]="g.largo + ' ' + (100 - g.largo)"
+          [attr.stroke-dashoffset]="g.desfase"
+          [style.stroke]="'var(--d' + (n + 1) + ')'"
+          (mouseenter)="ver(n)"
+          (mouseleave)="ver(null)"
+          (click)="fijar(n)"
+        />
+      }
+    </svg>
+    <div class="anillo__centro" aria-live="polite">
+      <strong>{{ centro().numero }}@if (centro().sufijo) {<small>{{ centro().sufijo }}</small>}</strong>
+      @if (centro().texto) { <span class="anillo__texto">{{ centro().texto }}</span> }
+      @if (centro().detalle) { <span class="anillo__detalle">{{ centro().detalle }}</span> }
+    </div>
+  </div>
+  <ul class="leyenda">
+    @for (b of barras(); track b.categoria; let n = $index) {
+      <li>
+        <button
+          type="button"
+          class="leyenda__fila"
+          [class.leyenda__fila--activa]="activa() === n"
+          [attr.aria-pressed]="esFija(n)"
+          (mouseenter)="ver(n)"
+          (mouseleave)="ver(null)"
+          (focus)="ver(n)"
+          (blur)="ver(null)"
+          (click)="fijar(n)"
+        >
+          <span class="leyenda__color" [style.background]="'var(--d' + (n + 1) + ')'" aria-hidden="true"></span>
+          <span class="leyenda__nombre">{{ b.categoria }}</span>
+          <span class="leyenda__cifra">{{ numero(b.porcentaje) }} % <small>({{ numero(b.n) }})</small></span>
+        </button>
+      </li>
+    }
+  </ul>
+</div>

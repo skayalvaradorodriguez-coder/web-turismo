@@ -41,18 +41,78 @@
       </article>
     </div>
 
+    <section class="panel panorama" aria-labelledby="panorama">
+      <div class="panel__fila">
+        <div>
+          <h2 id="panorama" class="panel__titulo">Panorama de indicadores</h2>
+          <p class="panel__texto">Calculados con los datos ya procesados. Elige una carga para verlos.</p>
+        </div>
+        <a class="boton boton--suave" routerLink="/indicadores" [queryParams]="panoramaId() ? { carga: panoramaId() } : null">Ver todos los indicadores</a>
+      </div>
+
+      @if (cargando()) {
+        <p class="vacio">Cargando…</p>
+      } @else if (panoramaCargas().length === 0) {
+        <p class="vacio">Todavía no hay datos procesados. Cuando una carga se procese, sus indicadores aparecerán aquí.</p>
+      } @else {
+        <div class="chips" role="group" aria-label="Carga a mostrar">
+          @for (c of panoramaCargas(); track c.id) {
+            <button type="button" class="chip" [class.chip--activo]="panoramaId() === c.id" [attr.aria-pressed]="panoramaId() === c.id" (click)="elegirPanorama(c.id)">
+              <span class="chip__id">#{{ c.id }}</span>{{ etiquetaChip(c) }}
+            </button>
+          }
+        </div>
+
+        @if (panoramaCargando()) {
+          <p class="vacio" role="status">Calculando indicadores…</p>
+        } @else if (panoramaError(); as mensaje) {
+          <p class="aviso aviso--error" role="alert">{{ mensaje }} <button type="button" class="enlace" (click)="reintentarPanorama()">Reintentar</button></p>
+        } @else if (panorama(); as p) {
+          @if (p.indicadores.length === 0) {
+            <p class="vacio">Esta carga todavía no tiene indicadores definidos.</p>
+          } @else {
+            <p class="origen">
+              <strong>{{ p.carga.fuente.nombre }}</strong> · {{ numero(p.totalRegistros) }} registros
+            </p>
+            <div class="panorama__cuerpo">
+              <div class="destacados">
+                @for (i of destacados(); track i.id) {
+                  <article class="destacado">
+                    <span class="destacado__nombre">{{ i.nombre }}</span>
+                    <strong class="destacado__valor">
+                      @if (grande(i).prefijo) { <small>{{ grande(i).prefijo }}</small> }{{ grande(i).numero }}@if (grande(i).sufijo) { <small>{{ grande(i).sufijo }}</small> }
+                    </strong>
+                    @if (grande(i).aclaracion) { <span class="destacado__nota">{{ grande(i).aclaracion }}</span> }
+                    @if (i.advertencia) { <span class="destacado__aviso">Por confirmar</span> }
+                  </article>
+                }
+              </div>
+              @if (repartoPrincipal(); as r) {
+                <article class="reparto">
+                  <h3 class="reparto__titulo">{{ r.nombre }}</h3>
+                  <app-anillo [indicador]="r" [maximo]="4" />
+                </article>
+              }
+            </div>
+          }
+        }
+      }
+    </section>
+
     <section class="panel" aria-labelledby="recorrido">
       <h2 id="recorrido" class="panel__titulo">Recorrido de los datos</h2>
-      <p class="panel__texto">Cada carga avanza por pasos controlados. El archivo original nunca se modifica.</p>
+      <p class="panel__texto">Cada carga avanza por pasos controlados y el archivo original nunca se modifica. Toca un paso para ver sus cargas.</p>
       <ol class="pasos">
         @for (paso of pasos(); track paso.etiqueta) {
-          <li class="paso">
-            <div class="paso__cabecera">
-              <strong>{{ paso.etiqueta }}</strong>
-              <span class="paso__cantidad">{{ paso.cantidad }}</span>
-            </div>
-            <div class="paso__pista"><div class="paso__barra" [style.width.%]="paso.ancho"></div></div>
-            <span class="paso__ayuda">{{ paso.ayuda }}</span>
+          <li>
+            <button type="button" class="paso" [class.paso--activo]="filtro() === paso.estado" [attr.aria-pressed]="filtro() === paso.estado" (click)="alternarFiltro(paso.estado)">
+              <span class="paso__cabecera">
+                <strong>{{ paso.etiqueta }}</strong>
+                <span class="paso__cantidad">{{ paso.cantidad }}</span>
+              </span>
+              <span class="paso__pista"><span class="paso__barra" [style.width.%]="paso.ancho"></span></span>
+              <span class="paso__ayuda">{{ paso.ayuda }}</span>
+            </button>
           </li>
         }
       </ol>
@@ -60,14 +120,19 @@
 
     <section class="panel" aria-labelledby="recientes">
       <div class="panel__fila">
-        <h2 id="recientes" class="panel__titulo">Cargas recientes</h2>
+        <h2 id="recientes" class="panel__titulo">
+          Cargas recientes
+          @if (filtro(); as f) {
+            <button type="button" class="filtro" (click)="alternarFiltro(f)" [attr.aria-label]="'Quitar filtro ' + etiqueta(f)">{{ etiqueta(f) }} <span aria-hidden="true">×</span></button>
+          }
+        </h2>
         <a class="boton boton--suave" routerLink="/cargas">Ver todas</a>
       </div>
 
       @if (cargando()) {
         <p class="vacio">Cargando…</p>
       } @else if (recientes().length === 0) {
-        <p class="vacio">Todavía no hay cargas. Cuando se reciba el primer archivo aparecerá aquí.</p>
+        <p class="vacio">{{ filtro() ? 'No hay cargas en este paso.' : 'Todavía no hay cargas. Cuando se reciba el primer archivo aparecerá aquí.' }}</p>
       } @else {
         <div class="tabla-caja">
           <table class="tabla">
