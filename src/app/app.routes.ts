@@ -8,6 +8,12 @@ const MARCA = 'Pacífico Abierto';
 export const routes: Routes = [
   // Debe ir primero: si no, la raiz "/" coincide con el marco de acceso y se queda sin formulario
   { path: '', redirectTo: 'home', pathMatch: 'full' },
+  // Parte publica: se puede ver sin iniciar sesion
+  {
+    path: 'portal',
+    title: `Indicadores turísticos · ${MARCA}`,
+    loadComponent: () => import('./features/portal/portal.page').then((m) => m.PortalPage),
+  },
   {
     path: '',
     canActivate: [guestGuard],

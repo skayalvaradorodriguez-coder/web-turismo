@@ -1,0 +1,113 @@
+<div class="portal">
+  <header class="barra">
+    <a class="barra__marca" routerLink="/portal" aria-label="Pacífico Abierto, inicio del portal"><app-marca /></a>
+    <nav class="barra__nav" aria-label="Portal">
+      <a href="#indicadores">Indicadores</a>
+      <a href="#fuentes">Fuentes</a>
+      <a href="#acerca">Acerca de</a>
+    </nav>
+    <div class="barra__acciones">
+      <app-theme-toggle />
+      <a class="boton boton--claro" [routerLink]="conSesion() ? '/home' : '/login'">{{ conSesion() ? 'Ir a la plataforma' : 'Iniciar sesión' }}</a>
+    </div>
+  </header>
+
+  <main class="contenido">
+    <section class="presentacion">
+      <p class="eyebrow"><span></span>Provincia de Santa Elena</p>
+      <h1>Indicadores turísticos con su origen a la vista</h1>
+      <p class="texto">
+        Cada cifra indica de qué fuente viene, a qué período corresponde y con cuántos registros se calculó.
+        Aquí solo aparecen datos que ya fueron revisados y publicados.
+      </p>
+    </section>
+
+    <section id="indicadores" class="bloque" aria-labelledby="t-indicadores">
+      <h2 id="t-indicadores" class="bloque__titulo">Indicadores</h2>
+
+      @if (cargandoLista()) {
+        <p class="estado" role="status">Cargando…</p>
+      } @else if (errorLista(); as mensaje) {
+        <div class="aviso aviso--error" role="alert"><p>{{ mensaje }}</p></div>
+      } @else if (cargas().length === 0) {
+        <div class="vacio">
+          <h3>Todavía no hay indicadores publicados</h3>
+          <p>Cuando se publiquen los primeros datos, aparecerán en esta página.</p>
+        </div>
+      } @else {
+        <div class="chips" role="group" aria-label="Datos publicados">
+          @for (c of cargas(); track c.id) {
+            <button type="button" class="chip" [class.chip--activo]="seleccionada() === c.id" [attr.aria-pressed]="seleccionada() === c.id" (click)="elegir(c.id)">
+              {{ etiqueta(c) }}
+            </button>
+          }
+        </div>
+
+        @if (datos(); as d) {
+          <ul class="origen" aria-label="Origen de los datos">
+            <li><span>Fuente</span><strong>{{ d.carga.fuente.nombre }}</strong></li>
+            <li><span>Institución</span><strong>{{ d.carga.fuente.institucion }}</strong></li>
+            <li><span>Período</span><strong>{{ periodo() }}</strong></li>
+            <li><span>Registros</span><strong>{{ numero(d.totalRegistros) }}</strong></li>
+            @if (d.carga.publicadaEn) {
+              <li><span>Publicado</span><strong>{{ fecha(d.carga.publicadaEn) }}</strong></li>
+            }
+          </ul>
+          @if (d.indicadores.length === 0) {
+            <div class="vacio">
+              <h3>Estos datos todavía no tienen indicadores</h3>
+              <p>Aún no se definieron indicadores para este tipo de datos.</p>
+            </div>
+          } @else {
+            <app-indicadores-vista [indicadores]="d.indicadores" />
+          }
+        } @else if (cargandoDatos()) {
+          <p class="estado" role="status">Calculando indicadores…</p>
+        } @else if (errorDatos(); as mensaje) {
+          <div class="aviso aviso--error" role="alert">
+            <p>{{ mensaje }} <button type="button" class="enlace" (click)="reintentar()">Reintentar</button></p>
+          </div>
+        }
+      }
+    </section>
+
+    @if (fuentes().length > 0) {
+      <section id="fuentes" class="bloque" aria-labelledby="t-fuentes">
+        <h2 id="t-fuentes" class="bloque__titulo">Fuentes y procedencia</h2>
+        <div class="fuentes">
+          @for (f of fuentes(); track f.nombre + f.institucion) {
+            <article class="fuente">
+              <h3>{{ f.nombre }}</h3>
+              <p class="fuente__inst">{{ f.institucion }}</p>
+              <dl>
+                @if (f.procedencia) { <div><dt>Procedencia</dt><dd>{{ f.procedencia }}</dd></div> }
+                @if (f.licenciaUso) { <div><dt>Condición de uso</dt><dd>{{ f.licenciaUso }}</dd></div> }
+                <div><dt>Datos publicados</dt><dd>{{ f.cargas }}</dd></div>
+              </dl>
+            </article>
+          }
+        </div>
+      </section>
+    }
+
+    <section id="acerca" class="bloque" aria-labelledby="t-acerca">
+      <h2 id="t-acerca" class="bloque__titulo">Acerca de estos datos</h2>
+      <div class="acerca">
+        <p>
+          Pacífico Abierto reúne información turística de la provincia de Santa Elena que llega de distintas fuentes,
+          con formatos y períodos diferentes. Antes de publicarse, los datos se validan y se ordenan, y el archivo
+          original siempre se conserva.
+        </p>
+        <p>
+          Algunos indicadores llevan la etiqueta <strong>Por confirmar</strong>: significa que su interpretación todavía
+          se está verificando con la fuente. Los indicadores de fuentes distintas no se suman ni se comparan entre sí.
+        </p>
+        <p>Los datos personales de las personas encuestadas o de los establecimientos no se publican.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="pie-portal">
+    <p>Pacífico Abierto · Datos turísticos de Santa Elena, Ecuador</p>
+  </footer>
+</div>

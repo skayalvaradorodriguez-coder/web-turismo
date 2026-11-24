@@ -121,3 +121,13 @@ export function textoRegistrosGrupo(usados: readonly number[]): string {
   if (menor === mayor) return `Calculado con ${formatearNumero(menor)} registros`;
   return `Cada promedio usa entre ${formatearNumero(menor)} y ${formatearNumero(mayor)} registros; el resto no respondió.`;
 }
+
+const TITULO_POR_ESTRUCTURA: Record<string, string> = {
+  ots_turista_v1: 'Perfil de los turistas',
+  ots_hotel_v1: 'Alojamiento',
+};
+
+/** Nombre corto del tipo de datos de una carga, a partir de su estructura. */
+export function tituloDeEstructura(estructura: string | null | undefined): string {
+  return TITULO_POR_ESTRUCTURA[estructura ?? ''] ?? 'Indicadores';
+}

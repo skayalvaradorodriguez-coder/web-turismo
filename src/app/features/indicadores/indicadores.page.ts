@@ -3,22 +3,18 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import type { Carga } from '@app/core/models/carga.models';
 import type { Fuente } from '@app/core/models/fuente.models';
-import type { Indicador, IndicadoresDeCarga } from '@app/core/models/indicador.models';
+import type { IndicadoresDeCarga } from '@app/core/models/indicador.models';
 import { CargasService } from '@app/core/services/cargas.service';
 import { FuentesService } from '@app/core/services/fuentes.service';
 import { IndicadoresService } from '@app/core/services/indicadores.service';
 import { formatearFecha, formatearPeriodo } from '@app/features/cargas/cargas.utils';
 import { mensajeApi } from '@app/shared/utils/api-error';
-import { centroAnillo, formatearNumero, prepararBarras, segmentosAnillo, textoRegistros, textoRegistrosGrupo, tipoDe, valorGrande } from './indicadores.utils';
-
-const TITULO_POR_ESTRUCTURA: Record<string, string> = {
-  ots_turista_v1: 'Perfil de los turistas',
-  ots_hotel_v1: 'Alojamiento',
-};
+import { IndicadoresVistaComponent } from '@app/shared/components/indicadores-vista/indicadores-vista.component';
+import { formatearNumero, tituloDeEstructura } from './indicadores.utils';
 
 @Component({
   selector: 'app-indicadores',
-  imports: [RouterLink],
+  imports: [RouterLink, IndicadoresVistaComponent],
   templateUrl: 'indicadores.page.html',
   styleUrls: ['indicadores.page.scss'],
 })
@@ -43,12 +39,8 @@ export class IndicadoresPage implements OnInit {
 
   /** Solo las cargas que ya pasaron por el procesamiento tienen indicadores. */
   protected readonly disponibles = computed(() => this.cargas().filter((c) => c.estado === 'procesada' || c.estado === 'publicada'));
-  protected readonly titulo = computed(() => TITULO_POR_ESTRUCTURA[this.datos()?.estructura ?? ''] ?? 'Indicadores');
+  protected readonly titulo = computed(() => tituloDeEstructura(this.datos()?.estructura));
 
-  /** Los indicadores se agrupan por la forma de dibujarlos: cifras arriba, repartos al centro y calificaciones al final. */
-  protected readonly cifras = computed(() => (this.datos()?.indicadores ?? []).filter((i) => tipoDe(i) === 'cifra'));
-  protected readonly repartos = computed(() => (this.datos()?.indicadores ?? []).filter((i) => tipoDe(i) === 'distribucion'));
-  protected readonly calificaciones = computed(() => (this.datos()?.indicadores ?? []).filter((i) => tipoDe(i) === 'calificacion'));
   protected readonly periodo = computed(() => {
     const c = this.datos()?.carga;
     return c ? formatearPeriodo(c.periodoDesde, c.periodoHasta) : '';
@@ -83,9 +75,6 @@ export class IndicadoresPage implements OnInit {
     this.cargandoDatos.set(true);
     this.errorDatos.set(null);
     this.datos.set(null);
-    this.vista.set({});
-    this.fija.set({});
-    this.infoAbierta.set(new Set());
     const suscripcion = this.indicadoresApi.deCarga(id).subscribe({
       next: (datos) => {
         // Si la persona eligio otra carga mientras tanto, esta respuesta ya no importa
@@ -105,69 +94,6 @@ export class IndicadoresPage implements OnInit {
   protected etiquetaCarga(carga: Carga): string {
     const fuente = this.nombresFuente().get(carga.fuenteId) ?? `Fuente #${carga.fuenteId}`;
     return `#${carga.id} · ${fuente} · ${formatearPeriodo(carga.periodoDesde, carga.periodoHasta)}`;
-  }
-
-  protected grande(i: Indicador) {
-    return valorGrande(i.valor, i.unidad);
-  }
-
-  protected barras(i: Indicador) {
-    return prepararBarras(i.distribucion ?? [], 6);
-  }
-
-  protected segmentos(i: Indicador) {
-    return segmentosAnillo(this.barras(i));
-  }
-
-  protected centro(i: Indicador) {
-    return centroAnillo(i, this.barras(i), this.activa(i.id));
-  }
-
-  // ---------- Interaccion ----------
-  // Pasar el cursor (o enfocar) muestra la categoria; hacer clic la deja fija hasta otro clic.
-  private readonly vista = signal<Record<string, number | null>>({});
-  private readonly fija = signal<Record<string, number | null>>({});
-  private readonly infoAbierta = signal<ReadonlySet<string>>(new Set());
-
-  protected activa(id: string): number | null {
-    return this.vista()[id] ?? this.fija()[id] ?? null;
-  }
-
-  protected esFija(id: string, n: number): boolean {
-    return this.fija()[id] === n;
-  }
-
-  protected ver(id: string, n: number | null): void {
-    this.vista.update((v) => ({ ...v, [id]: n }));
-  }
-
-  protected fijar(id: string, n: number): void {
-    this.fija.update((f) => ({ ...f, [id]: f[id] === n ? null : n }));
-  }
-
-  protected hayInfo(id: string): boolean {
-    return this.infoAbierta().has(id);
-  }
-
-  protected alternarInfo(id: string): void {
-    this.infoAbierta.update((abiertos) => {
-      const nuevo = new Set(abiertos);
-      if (!nuevo.delete(id)) nuevo.add(id);
-      return nuevo;
-    });
-  }
-
-  /** Ancho de la barra de una calificacion de 1 a 5. */
-  protected ancho(i: Indicador): number {
-    return i.valor === null ? 0 : Math.round((i.valor / 5) * 100);
-  }
-
-  protected registrosGrupo(lista: readonly Indicador[]): string {
-    return textoRegistrosGrupo(lista.map((i) => i.registrosUsados));
-  }
-
-  protected registros(i: Indicador): string {
-    return textoRegistros(i.registrosUsados, i.registrosExcluidos);
   }
 
   protected numero(n: number): string {
