@@ -1,0 +1,80 @@
+<section class="pagina">
+  <header class="cabecera">
+    <p class="eyebrow"><span></span>Indicadores</p>
+    <h1 class="titulo">Lo que dicen los datos</h1>
+    <p class="texto">Cada indicador se calcula con los registros ya procesados de una carga e indica cuántos datos usó y de qué fuente vienen.</p>
+  </header>
+
+  @if (cargandoLista()) {
+    <p class="estado" role="status">Cargando…</p>
+  } @else if (errorLista(); as mensaje) {
+    <div class="aviso aviso--error" role="alert"><p>{{ mensaje }}</p></div>
+  } @else if (disponibles().length === 0) {
+    <div class="vacio">
+      <h2>Todavía no hay datos procesados</h2>
+      <p>Los indicadores aparecen cuando una carga se procesa. Abre una carga, valídala y procésala.</p>
+      <a class="boton" routerLink="/cargas">Ir a las cargas</a>
+    </div>
+  } @else {
+    <div class="tarjeta selector">
+      <label for="carga">Carga</label>
+      <select id="carga" (change)="alCambiar($event)">
+        @for (c of disponibles(); track c.id) {
+          <option [value]="c.id" [selected]="seleccionada() === c.id">{{ etiquetaCarga(c) }}</option>
+        }
+      </select>
+    </div>
+
+    @if (cargandoDatos()) {
+      <p class="estado" role="status">Calculando indicadores…</p>
+    } @else if (errorDatos(); as mensaje) {
+      <div class="aviso aviso--error" role="alert"><p>{{ mensaje }}</p></div>
+    } @else if (datos(); as d) {
+      <section class="resumen" aria-label="Origen de los datos">
+        <div><span class="resumen__k">Fuente</span><strong>{{ d.carga.fuente.nombre }}</strong></div>
+        <div><span class="resumen__k">Período</span><strong>{{ periodo() }}</strong></div>
+        <div><span class="resumen__k">Registros procesados</span><strong>{{ numero(d.totalRegistros) }}</strong></div>
+      </section>
+
+      @if (d.indicadores.length === 0) {
+        <div class="vacio">
+          <h2>Esta carga todavía no tiene indicadores</h2>
+          <p>Aún no se definieron indicadores para este tipo de datos.</p>
+        </div>
+      } @else {
+        <h2 class="subtitulo">{{ titulo() }}</h2>
+        <div class="rejilla">
+          @for (i of d.indicadores; track i.id) {
+            <article class="indicador" [class.indicador--ancho]="i.distribucion?.length">
+              <h3>{{ i.nombre }}</h3>
+              <p class="indicador__desc">{{ i.descripcion }}</p>
+
+              @if (i.valor !== null) {
+                <p class="indicador__valor">{{ valor(i) }}</p>
+              } @else if (!i.distribucion?.length) {
+                <p class="indicador__vacio">Sin datos suficientes para calcularlo.</p>
+              }
+
+              @if (i.distribucion?.length) {
+                <ul class="barras" [attr.aria-label]="'Distribución: ' + i.nombre">
+                  @for (b of barras(i); track b.categoria) {
+                    <li>
+                      <span class="barras__nombre">{{ b.categoria }}</span>
+                      <span class="barras__pista" aria-hidden="true"><span class="barras__barra" [style.width.%]="b.ancho"></span></span>
+                      <span class="barras__cifra">{{ numero(b.porcentaje) }} % <small>({{ numero(b.n) }})</small></span>
+                    </li>
+                  }
+                </ul>
+              }
+
+              @if (i.advertencia) {
+                <p class="indicador__aviso"><strong>Por confirmar.</strong> {{ i.advertencia }}</p>
+              }
+              <p class="indicador__pie">{{ registros(i) }}</p>
+            </article>
+          }
+        </div>
+      }
+    }
+  }
+</section>

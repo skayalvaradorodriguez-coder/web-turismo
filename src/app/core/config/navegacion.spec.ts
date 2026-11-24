@@ -37,3 +37,12 @@ describe('menuPara (Cargas)', () => {
     expect(rutas('externo')).not.toContain('/cargas');
   });
 });
+
+describe('menuPara (Indicadores)', () => {
+  it('gestion e investigador ven Indicadores; externo no', () => {
+    expect(rutas('super_admin')).toContain('/indicadores');
+    expect(rutas('admin')).toContain('/indicadores');
+    expect(rutas('investigador')).toContain('/indicadores');
+    expect(rutas('externo')).not.toContain('/indicadores');
+  });
+});

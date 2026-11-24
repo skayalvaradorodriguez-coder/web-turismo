@@ -28,6 +28,12 @@ export const MENU: readonly ItemMenu[] = [
     roles: ROLES_CONSULTA,
   },
   {
+    etiqueta: 'Indicadores',
+    ruta: '/indicadores',
+    icono: 'M4 20V10M10 20V4M16 20v-7M22 20H2',
+    roles: ROLES_CONSULTA,
+  },
+  {
     etiqueta: 'Usuarios',
     ruta: '/usuarios',
     icono: 'M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM22 21v-2a4 4 0 00-3-3.9M16 3.1a4 4 0 010 7.8',

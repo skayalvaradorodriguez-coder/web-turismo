@@ -81,6 +81,13 @@ export const routes: Routes = [
           import('./features/cargas/carga-detalle/carga-detalle.page').then((m) => m.CargaDetallePage),
       },
       {
+        path: 'indicadores',
+        canActivate: [rolGuard(...ROLES_CONSULTA)],
+        title: `Indicadores · ${MARCA}`,
+        loadComponent: () =>
+          import('./features/indicadores/indicadores.page').then((m) => m.IndicadoresPage),
+      },
+      {
         path: 'usuarios',
         canActivate: [rolGuard(...ROLES_GESTION)],
         title: `Usuarios · ${MARCA}`,
