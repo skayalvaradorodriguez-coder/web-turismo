@@ -87,6 +87,9 @@
           <div><dt>Nivel de ingreso</dt><dd>{{ etiquetaNivel(d.carga.nivelIngreso) }}</dd></div>
           <div><dt>Registrada</dt><dd>{{ fechaHora(d.carga.creadaEn) }}</dd></div>
           <div><dt>Última actualización</dt><dd>{{ fechaHora(d.carga.actualizadaEn) }}</dd></div>
+          @if (d.carga.publicadaEn; as publicada) {
+            <div><dt>Publicada</dt><dd>{{ fechaHora(publicada) }}</dd></div>
+          }
           @if (d.carga.descripcion) {
             <div class="datos__ancho"><dt>Descripción</dt><dd>{{ d.carga.descripcion }}</dd></div>
           }
@@ -95,6 +98,38 @@
           }
         </dl>
       </section>
+
+      @if (puedePublicar() || puedeRetirar()) {
+        <section class="tarjeta" aria-labelledby="titulo-publicacion">
+          <h2 class="tarjeta__titulo" id="titulo-publicacion">Publicación</h2>
+          @if (puedePublicar()) {
+            <p class="ayuda">Publicar deja los datos de esta carga disponibles para la parte pública. Puedes retirar la publicación cuando quieras y todo queda en la bitácora.</p>
+          } @else {
+            <p class="ayuda">Esta carga está publicada. Si la retiras, deja de estar disponible para la parte pública y vuelve a "procesada".</p>
+          }
+
+          @if (confirmandoPublicacion(); as accion) {
+            <p class="ayuda"><strong>{{ accion === 'publicar' ? '¿Publicar esta carga?' : '¿Retirar la publicación?' }}</strong></p>
+            @if (errorPublicacion(); as mensaje) {
+              <div class="aviso aviso--error" role="alert"><app-icon name="alert" [size]="18" /><p>{{ mensaje }}</p></div>
+            }
+            <div class="acciones">
+              <button type="button" class="boton" [class.boton--peligro]="accion === 'retirar'" [disabled]="cambiandoPublicacion()" [attr.aria-busy]="cambiandoPublicacion()" (click)="confirmarPublicacion()">
+                {{ cambiandoPublicacion() ? 'Guardando…' : accion === 'publicar' ? 'Sí, publicar' : 'Sí, retirar' }}
+              </button>
+              <button type="button" class="boton boton--secundario" [disabled]="cambiandoPublicacion()" (click)="cancelarPublicacion()">Cancelar</button>
+            </div>
+          } @else {
+            <div class="acciones">
+              @if (puedePublicar()) {
+                <button type="button" class="boton" (click)="abrirPublicacion('publicar')">Publicar carga</button>
+              } @else {
+                <button type="button" class="boton boton--peligro-suave" (click)="abrirPublicacion('retirar')">Retirar publicación</button>
+              }
+            </div>
+          }
+        </section>
+      }
 
       @if (puedeRechazar()) {
         <section class="tarjeta" aria-labelledby="titulo-rechazo">

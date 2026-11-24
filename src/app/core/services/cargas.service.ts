@@ -55,6 +55,16 @@ export class CargasService {
       .pipe(map((respuesta) => respuesta.data));
   }
 
+  /** Publica una carga procesada: queda disponible para la parte pública. */
+  publicar(id: number): Observable<DetalleCarga> {
+    return this.http.post<ApiOk<DetalleCarga>>(`${this.url}/${id}/publicacion`, {}).pipe(map((respuesta) => respuesta.data));
+  }
+
+  /** Retira la publicación: la carga vuelve a "procesada". */
+  despublicar(id: number): Observable<DetalleCarga> {
+    return this.http.delete<ApiOk<DetalleCarga>>(`${this.url}/${id}/publicacion`).pipe(map((respuesta) => respuesta.data));
+  }
+
   /**
    * Descarga el archivo original. Si la API responde con error, el cuerpo llega como Blob:
    * se convierte de nuevo a JSON para que el mensaje de la API se pueda mostrar.

@@ -83,10 +83,18 @@ export class CargaDetallePage implements OnInit {
     maxlength: 'Máximo 1000 caracteres',
   };
 
+  /** Publicación: primero se pide confirmar, luego se llama a la API. */
+  protected readonly confirmandoPublicacion = signal<'publicar' | 'retirar' | null>(null);
+  protected readonly cambiandoPublicacion = signal(false);
+  protected readonly errorPublicacion = signal<string | null>(null);
+
   protected readonly esGestion = computed(() => ROLES_GESTION.includes(this.auth.usuario()?.rol ?? ''));
   protected readonly puedeRechazar = computed(
     () => this.esGestion() && ESTADOS_ABIERTOS.includes(this.detalle()?.carga.estado ?? 'publicada'),
   );
+  /** Solo se publica lo que ya fue procesado; una carga publicada se puede retirar. */
+  protected readonly puedePublicar = computed(() => this.esGestion() && this.detalle()?.carga.estado === 'procesada');
+  protected readonly puedeRetirar = computed(() => this.esGestion() && this.detalle()?.carga.estado === 'publicada');
   protected readonly archivoVigente = computed(() => this.detalle()?.archivos.find((a) => a.vigente) ?? null);
   protected readonly puedeValidar = computed(
     () => this.esGestion() && this.archivoVigente() !== null && ['recibida', 'validada'].includes(this.detalle()?.carga.estado ?? ''),
@@ -246,6 +254,37 @@ export class CargaDetallePage implements OnInit {
           this.aviso.set('La carga fue rechazada. El archivo original se conserva.');
         },
         error: (e: unknown) => this.errorRechazo.set(mensajeApi(e, 'No se pudo rechazar la carga. Inténtalo de nuevo.')),
+      });
+  }
+
+  abrirPublicacion(accion: 'publicar' | 'retirar'): void {
+    this.errorPublicacion.set(null);
+    this.confirmandoPublicacion.set(accion);
+  }
+
+  cancelarPublicacion(): void {
+    this.confirmandoPublicacion.set(null);
+  }
+
+  confirmarPublicacion(): void {
+    const accion = this.confirmandoPublicacion();
+    if (!accion || this.cambiandoPublicacion()) return;
+
+    this.errorPublicacion.set(null);
+    this.cambiandoPublicacion.set(true);
+    const llamada = accion === 'publicar' ? this.cargasApi.publicar(this.id) : this.cargasApi.despublicar(this.id);
+    llamada
+      .pipe(
+        finalize(() => this.cambiandoPublicacion.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (detalle) => {
+          this.detalle.set(detalle);
+          this.confirmandoPublicacion.set(null);
+          this.aviso.set(accion === 'publicar' ? 'La carga fue publicada.' : 'Se retiró la publicación. La carga vuelve a estar procesada.');
+        },
+        error: (e: unknown) => this.errorPublicacion.set(mensajeApi(e, 'No se pudo cambiar la publicación. Inténtalo de nuevo.')),
       });
   }
 }

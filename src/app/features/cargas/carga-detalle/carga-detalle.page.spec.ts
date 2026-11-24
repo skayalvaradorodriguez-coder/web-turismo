@@ -246,4 +246,83 @@ describe('CargaDetallePage', () => {
 
     expect(texto()).toContain('La carga ya no admite cambios en su estado actual');
   });
+
+  it('una carga procesada se publica solo después de confirmar', () => {
+    const { fixture, http, texto, boton, raiz, responder } = preparar();
+    responder(detalle('procesada'));
+
+    boton('Publicar carga')?.click();
+    fixture.detectChanges();
+    http.expectNone(`${URL_CARGA}/publicacion`); // todavía no: falta confirmar
+    expect(texto()).toContain('¿Publicar esta carga?');
+
+    boton('Sí, publicar')?.click();
+    const peticion = http.expectOne(`${URL_CARGA}/publicacion`);
+    expect(peticion.request.method).toBe('POST');
+    peticion.flush({ ok: true, data: detalle('publicada', { publicadaEn: '2026-11-24T14:00:00.000Z', publicadaPor: 1 }) });
+    fixture.detectChanges();
+
+    expect(raiz.querySelector('.insignia')?.textContent?.trim()).toBe('Publicada');
+    expect(texto()).toContain('La carga fue publicada.');
+    expect(boton('Publicar carga')).toBeUndefined();
+    expect(boton('Retirar publicación')).toBeTruthy();
+  });
+
+  it('cancelar la confirmación no publica nada', () => {
+    const { fixture, http, boton, responder } = preparar();
+    responder(detalle('procesada'));
+
+    boton('Publicar carga')?.click();
+    fixture.detectChanges();
+    boton('Cancelar')?.click();
+    fixture.detectChanges();
+
+    http.expectNone(`${URL_CARGA}/publicacion`);
+    expect(boton('Publicar carga')).toBeTruthy();
+  });
+
+  it('una carga publicada se puede retirar y vuelve a procesada', () => {
+    const { fixture, http, texto, boton, raiz, responder } = preparar();
+    responder(detalle('publicada', { publicadaEn: '2026-11-24T14:00:00.000Z' }));
+    expect(texto()).toContain('Publicada');
+
+    boton('Retirar publicación')?.click();
+    fixture.detectChanges();
+    boton('Sí, retirar')?.click();
+    const peticion = http.expectOne(`${URL_CARGA}/publicacion`);
+    expect(peticion.request.method).toBe('DELETE');
+    peticion.flush({ ok: true, data: detalle('procesada') });
+    fixture.detectChanges();
+
+    expect(raiz.querySelector('.insignia')?.textContent?.trim()).toBe('Procesada');
+    expect(boton('Publicar carga')).toBeTruthy();
+  });
+
+  it('si la API no deja publicar muestra su mensaje y no cambia el estado', () => {
+    const { fixture, http, texto, boton, raiz, responder } = preparar();
+    responder(detalle('procesada'));
+
+    boton('Publicar carga')?.click();
+    fixture.detectChanges();
+    boton('Sí, publicar')?.click();
+    http.expectOne(`${URL_CARGA}/publicacion`).flush(
+      { ok: false, code: 'CARGA_NO_PUBLICABLE', message: 'Solo se puede publicar una carga procesada' },
+      { status: 409, statusText: 'Conflict' },
+    );
+    fixture.detectChanges();
+
+    expect(texto()).toContain('Solo se puede publicar una carga procesada');
+    expect(raiz.querySelector('.insignia')?.textContent?.trim()).toBe('Procesada');
+  });
+
+  it('solo la gestión publica: el investigador no ve el botón y una carga recibida tampoco lo ofrece', () => {
+    const a = preparar({ rol: 'investigador' });
+    a.responder(detalle('procesada'));
+    expect(a.boton('Publicar carga')).toBeUndefined();
+    TestBed.resetTestingModule();
+
+    const b = preparar();
+    b.responder(detalle('validada'));
+    expect(b.boton('Publicar carga')).toBeUndefined();
+  });
 });
