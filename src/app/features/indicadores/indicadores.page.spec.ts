@@ -101,4 +101,51 @@ describe('IndicadoresPage', () => {
     f.detectChanges();
     expect(f.nativeElement.textContent).toContain('todavía no tiene indicadores');
   });
+
+  it('al tocar una categoria de la leyenda el centro del anillo muestra sus datos y vuelve a pulsar la suelta', () => {
+    const f = montar([carga(2, 'procesada')], vi.fn().mockReturnValue(of(datos)));
+    f.detectChanges();
+    const el: HTMLElement = f.nativeElement;
+    const centro = () => el.querySelector('.anillo__centro')?.textContent ?? '';
+    expect(centro()).toContain('66,6');
+
+    const filas = el.querySelectorAll<HTMLButtonElement>('.leyenda__fila');
+    filas[1]!.click();
+    f.detectChanges();
+    expect(centro()).toContain('Familiares');
+    expect(centro()).toContain('20,1');
+    expect(centro()).toContain('388 registros');
+    expect(filas[1]!.getAttribute('aria-pressed')).toBe('true');
+
+    filas[1]!.click();
+    f.detectChanges();
+    expect(centro()).toContain('Descanso');
+  });
+
+  it('pasar el cursor por una categoria la resalta y al salir se quita', () => {
+    const f = montar([carga(2, 'procesada')], vi.fn().mockReturnValue(of(datos)));
+    f.detectChanges();
+    const el: HTMLElement = f.nativeElement;
+    const fila = el.querySelectorAll<HTMLButtonElement>('.leyenda__fila')[1]!;
+    fila.dispatchEvent(new Event('mouseenter'));
+    f.detectChanges();
+    expect(fila.classList).toContain('leyenda__fila--activa');
+    expect(el.querySelectorAll('.seg--tenue').length).toBe(1);
+    fila.dispatchEvent(new Event('mouseleave'));
+    f.detectChanges();
+    expect(el.querySelectorAll('.seg--tenue').length).toBe(0);
+  });
+
+  it('el boton i muestra y oculta la explicacion del indicador', () => {
+    const f = montar([carga(2, 'procesada')], vi.fn().mockReturnValue(of(datos)));
+    f.detectChanges();
+    const el: HTMLElement = f.nativeElement;
+    expect(el.textContent).not.toContain('Cantidad');
+    el.querySelector<HTMLButtonElement>('.cifra .info')!.click();
+    f.detectChanges();
+    expect(el.textContent).toContain('Cantidad');
+    el.querySelector<HTMLButtonElement>('.cifra .info')!.click();
+    f.detectChanges();
+    expect(el.textContent).not.toContain('Cantidad');
+  });
 });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Indicador } from '@app/core/models/indicador.models';
-import { formatearNumero, formatearValor, gradienteAnillo, prepararBarras, textoRegistros, textoRegistrosGrupo, tipoDe, valorGrande } from './indicadores.utils';
+import { formatearNumero, formatearValor, centroAnillo, prepararBarras, textoRegistros, segmentosAnillo, textoRegistrosGrupo, tipoDe, valorGrande } from './indicadores.utils';
 
 describe('formatearNumero y formatearValor', () => {
   it('usa coma decimal y separa los miles', () => {
@@ -77,15 +77,41 @@ describe('valorGrande', () => {
   });
 });
 
-describe('gradienteAnillo', () => {
-  it('arma los tramos acumulados y cierra en 100 %', () => {
-    expect(gradienteAnillo([{ porcentaje: 49 }, { porcentaje: 46.1 }, { porcentaje: 4.8 }])).toBe(
-      'conic-gradient(var(--d1) 0% 49%, var(--d2) 49% 95.1%, var(--d3) 95.1% 100%)',
-    );
+describe('segmentosAnillo', () => {
+  it('reparte 100 entre las categorias, con hueco, empezando arriba', () => {
+    const seg = segmentosAnillo([{ porcentaje: 50 }, { porcentaje: 30 }, { porcentaje: 20 }]);
+    expect(seg).toEqual([
+      { largo: 49.4, desfase: 25 },
+      { largo: 29.4, desfase: -25 },
+      { largo: 19.4, desfase: -55 },
+    ]);
   });
 
-  it('sin categorias no pinta nada', () => {
-    expect(gradienteAnillo([])).toBe('none');
+  it('normaliza porcentajes redondeados que no suman 100', () => {
+    const seg = segmentosAnillo([{ porcentaje: 49 }, { porcentaje: 46.1 }, { porcentaje: 2.6 }, { porcentaje: 2.3 }]);
+    expect(seg.reduce((s, x) => s + x.largo, 0)).toBeCloseTo(100 - 4 * 0.6, 1);
+  });
+
+  it('una sola categoria cierra el circulo sin hueco y sin datos no hay arcos', () => {
+    expect(segmentosAnillo([{ porcentaje: 100 }])).toEqual([{ largo: 100, desfase: 25 }]);
+    expect(segmentosAnillo([])).toEqual([]);
+  });
+});
+
+describe('centroAnillo', () => {
+  const barras = [{ categoria: 'Femenino', n: 945, porcentaje: 49 }, { categoria: 'Masculino', n: 888, porcentaje: 46.1 }];
+
+  it('con una categoria elegida muestra su porcentaje, nombre y cantidad', () => {
+    expect(centroAnillo(indicador({ valor: null, unidad: '%' }), barras, 1)).toEqual({ numero: '46,1', sufijo: '%', texto: 'Masculino', detalle: '888 registros' });
+  });
+
+  it('sin eleccion muestra la categoria mayor', () => {
+    expect(centroAnillo(indicador({ valor: null, unidad: '%' }), barras, null)).toMatchObject({ numero: '49', texto: 'Femenino' });
+  });
+
+  it('un indicador con cifra propia la muestra mientras no se elige nada', () => {
+    expect(centroAnillo(indicador({ valor: 91.3, unidad: '% residentes en Ecuador' }), barras, null)).toEqual({ numero: '91,3', sufijo: '%', texto: 'residentes en Ecuador', detalle: '' });
+    expect(centroAnillo(indicador({ valor: 6576, unidad: 'turistas' }), barras, null)).toMatchObject({ numero: '6 576', sufijo: '', texto: 'turistas' });
   });
 });
 

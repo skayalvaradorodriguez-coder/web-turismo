@@ -72,20 +72,45 @@ export function valorGrande(valor: number | null, unidad: string): ValorGrande {
   return { prefijo: '', numero, sufijo: unidad, aclaracion: '' };
 }
 
+export interface SegmentoAnillo {
+  /** Largo del arco sobre una circunferencia de 100 (ya con un pequeño hueco entre categorias). */
+  largo: number;
+  /** Desplazamiento para que el primer arco empiece arriba y siga en sentido horario. */
+  desfase: number;
+}
+
 /**
- * Gradiente cónico del anillo: cada categoria con su variable de color (--d1, --d2...).
- * Los porcentajes vienen redondeados, asi que el último tramo se estira hasta 100 %.
+ * Arcos del anillo (circunferencia de 100). Se normaliza para que sumen 100 aunque los porcentajes
+ * vengan redondeados, y se deja un hueco entre categorias cuando hay mas de una.
  */
-export function gradienteAnillo(barras: readonly { porcentaje: number }[]): string {
-  if (barras.length === 0) return 'none';
-  let acumulado = 0;
-  const tramos = barras.map((b, i) => {
-    const desde = acumulado;
-    acumulado = Math.round((acumulado + b.porcentaje) * 100) / 100;
-    const hasta = i === barras.length - 1 ? 100 : Math.min(100, acumulado);
-    return `var(--d${i + 1}) ${desde}% ${hasta}%`;
+export function segmentosAnillo(barras: readonly { porcentaje: number }[]): SegmentoAnillo[] {
+  const total = barras.reduce((suma, b) => suma + b.porcentaje, 0);
+  if (total <= 0) return [];
+  const hueco = barras.length > 1 ? 0.6 : 0;
+  let inicio = 0;
+  return barras.map((b) => {
+    const parte = (b.porcentaje / total) * 100;
+    const segmento = { largo: Math.max(0, Math.round((parte - hueco) * 100) / 100), desfase: Math.round((25 - inicio) * 100) / 100 };
+    inicio += parte;
+    return segmento;
   });
-  return `conic-gradient(${tramos.join(', ')})`;
+}
+
+export interface CentroAnillo {
+  numero: string;
+  sufijo: string;
+  texto: string;
+  detalle: string;
+}
+
+/** Que se escribe en el centro del anillo: la categoria elegida o, si no hay, el resumen del indicador. */
+export function centroAnillo(i: Indicador, barras: readonly ItemDistribucion[], elegida: number | null): CentroAnillo {
+  const e = elegida === null ? undefined : barras[elegida];
+  if (e) return { numero: formatearNumero(e.porcentaje), sufijo: '%', texto: e.categoria, detalle: `${formatearNumero(e.n)} registros` };
+  const g = valorGrande(i.valor, i.unidad);
+  if (i.valor !== null) return { numero: g.numero, sufijo: g.sufijo === '%' ? '%' : '', texto: g.aclaracion || (g.sufijo === '%' ? '' : g.sufijo), detalle: '' };
+  const mayor = barras[0];
+  return mayor ? { numero: formatearNumero(mayor.porcentaje), sufijo: '%', texto: mayor.categoria, detalle: '' } : { numero: '', sufijo: '', texto: '', detalle: '' };
 }
 
 /** Pie de un grupo de promedios que no usan los mismos registros: dice el rango en vez de inventar un solo numero. */

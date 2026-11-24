@@ -9,7 +9,7 @@ import { FuentesService } from '@app/core/services/fuentes.service';
 import { IndicadoresService } from '@app/core/services/indicadores.service';
 import { formatearFecha, formatearPeriodo } from '@app/features/cargas/cargas.utils';
 import { mensajeApi } from '@app/shared/utils/api-error';
-import { formatearNumero, gradienteAnillo, prepararBarras, textoRegistros, textoRegistrosGrupo, tipoDe, valorGrande } from './indicadores.utils';
+import { centroAnillo, formatearNumero, prepararBarras, segmentosAnillo, textoRegistros, textoRegistrosGrupo, tipoDe, valorGrande } from './indicadores.utils';
 
 const TITULO_POR_ESTRUCTURA: Record<string, string> = {
   ots_turista_v1: 'Perfil de los turistas',
@@ -83,6 +83,9 @@ export class IndicadoresPage implements OnInit {
     this.cargandoDatos.set(true);
     this.errorDatos.set(null);
     this.datos.set(null);
+    this.vista.set({});
+    this.fija.set({});
+    this.infoAbierta.set(new Set());
     const suscripcion = this.indicadoresApi.deCarga(id).subscribe({
       next: (datos) => {
         // Si la persona eligio otra carga mientras tanto, esta respuesta ya no importa
@@ -112,8 +115,46 @@ export class IndicadoresPage implements OnInit {
     return prepararBarras(i.distribucion ?? [], 6);
   }
 
-  protected anillo(i: Indicador): string {
-    return gradienteAnillo(this.barras(i));
+  protected segmentos(i: Indicador) {
+    return segmentosAnillo(this.barras(i));
+  }
+
+  protected centro(i: Indicador) {
+    return centroAnillo(i, this.barras(i), this.activa(i.id));
+  }
+
+  // ---------- Interaccion ----------
+  // Pasar el cursor (o enfocar) muestra la categoria; hacer clic la deja fija hasta otro clic.
+  private readonly vista = signal<Record<string, number | null>>({});
+  private readonly fija = signal<Record<string, number | null>>({});
+  private readonly infoAbierta = signal<ReadonlySet<string>>(new Set());
+
+  protected activa(id: string): number | null {
+    return this.vista()[id] ?? this.fija()[id] ?? null;
+  }
+
+  protected esFija(id: string, n: number): boolean {
+    return this.fija()[id] === n;
+  }
+
+  protected ver(id: string, n: number | null): void {
+    this.vista.update((v) => ({ ...v, [id]: n }));
+  }
+
+  protected fijar(id: string, n: number): void {
+    this.fija.update((f) => ({ ...f, [id]: f[id] === n ? null : n }));
+  }
+
+  protected hayInfo(id: string): boolean {
+    return this.infoAbierta().has(id);
+  }
+
+  protected alternarInfo(id: string): void {
+    this.infoAbierta.update((abiertos) => {
+      const nuevo = new Set(abiertos);
+      if (!nuevo.delete(id)) nuevo.add(id);
+      return nuevo;
+    });
   }
 
   /** Ancho de la barra de una calificacion de 1 a 5. */
