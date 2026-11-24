@@ -9,7 +9,7 @@ import { FuentesService } from '@app/core/services/fuentes.service';
 import { IndicadoresService } from '@app/core/services/indicadores.service';
 import { formatearFecha, formatearPeriodo } from '@app/features/cargas/cargas.utils';
 import { mensajeApi } from '@app/shared/utils/api-error';
-import { formatearNumero, formatearValor, prepararBarras, textoRegistros } from './indicadores.utils';
+import { formatearNumero, gradienteAnillo, prepararBarras, textoRegistros, textoRegistrosGrupo, tipoDe, valorGrande } from './indicadores.utils';
 
 const TITULO_POR_ESTRUCTURA: Record<string, string> = {
   ots_turista_v1: 'Perfil de los turistas',
@@ -44,6 +44,11 @@ export class IndicadoresPage implements OnInit {
   /** Solo las cargas que ya pasaron por el procesamiento tienen indicadores. */
   protected readonly disponibles = computed(() => this.cargas().filter((c) => c.estado === 'procesada' || c.estado === 'publicada'));
   protected readonly titulo = computed(() => TITULO_POR_ESTRUCTURA[this.datos()?.estructura ?? ''] ?? 'Indicadores');
+
+  /** Los indicadores se agrupan por la forma de dibujarlos: cifras arriba, repartos al centro y calificaciones al final. */
+  protected readonly cifras = computed(() => (this.datos()?.indicadores ?? []).filter((i) => tipoDe(i) === 'cifra'));
+  protected readonly repartos = computed(() => (this.datos()?.indicadores ?? []).filter((i) => tipoDe(i) === 'distribucion'));
+  protected readonly calificaciones = computed(() => (this.datos()?.indicadores ?? []).filter((i) => tipoDe(i) === 'calificacion'));
   protected readonly periodo = computed(() => {
     const c = this.datos()?.carga;
     return c ? formatearPeriodo(c.periodoDesde, c.periodoHasta) : '';
@@ -99,12 +104,25 @@ export class IndicadoresPage implements OnInit {
     return `#${carga.id} · ${fuente} · ${formatearPeriodo(carga.periodoDesde, carga.periodoHasta)}`;
   }
 
-  protected valor(i: Indicador): string {
-    return i.valor === null ? '' : formatearValor(i.valor, i.unidad);
+  protected grande(i: Indicador) {
+    return valorGrande(i.valor, i.unidad);
   }
 
   protected barras(i: Indicador) {
-    return prepararBarras(i.distribucion ?? []);
+    return prepararBarras(i.distribucion ?? [], 6);
+  }
+
+  protected anillo(i: Indicador): string {
+    return gradienteAnillo(this.barras(i));
+  }
+
+  /** Ancho de la barra de una calificacion de 1 a 5. */
+  protected ancho(i: Indicador): number {
+    return i.valor === null ? 0 : Math.round((i.valor / 5) * 100);
+  }
+
+  protected registrosGrupo(lista: readonly Indicador[]): string {
+    return textoRegistrosGrupo(lista.map((i) => i.registrosUsados));
   }
 
   protected registros(i: Indicador): string {

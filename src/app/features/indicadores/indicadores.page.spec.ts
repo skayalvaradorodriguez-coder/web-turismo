@@ -33,6 +33,8 @@ const datos: IndicadoresDeCarga = {
       id: 'T5', nombre: 'Motivo de visita', descripcion: 'Porcentaje', valor: null, unidad: '%', registrosUsados: 1900, registrosExcluidos: 27,
       distribucion: [{ categoria: 'Descanso', n: 1284, porcentaje: 66.6 }, { categoria: 'Familiares', n: 388, porcentaje: 20.1 }],
     },
+    { id: 'T10', nombre: 'Satisfacción general promedio', descripcion: 'Promedio', valor: 4.19, unidad: 'de 5', registrosUsados: 1911, registrosExcluidos: 16 },
+    { id: 'T11', nombre: 'Satisfacción con la seguridad', descripcion: 'Promedio', valor: 4.2, unidad: 'de 5', registrosUsados: 1900, registrosExcluidos: 27 },
   ],
 };
 
@@ -69,11 +71,14 @@ describe('IndicadoresPage', () => {
     expect(deCarga).toHaveBeenCalledWith(2);
     expect(texto).toContain('Observatorio Turístico UPSE');
     expect(texto).toContain('30 oct 2026 – 4 nov 2026');
-    expect(texto).toContain('1 927 registros');
-    expect(texto).toContain('USD 168,74');
+    expect(texto).toContain('1 927');
+    expect(texto).toContain('168,74');
+    expect(texto).toContain('USD');
     expect(texto).toContain('Por confirmar');
     expect(texto).toContain('66,6 %');
     expect(texto).toContain('Calculado con 1 900 registros · 27 sin dato o incoherentes');
+    expect(texto).toContain('4,19');
+    expect(texto).toContain('Cada promedio usa entre 1 900 y 1 911 registros; el resto no respondió.');
   });
 
   it('una carga que no está procesada no aparece en el selector', () => {

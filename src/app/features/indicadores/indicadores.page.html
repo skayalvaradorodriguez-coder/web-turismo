@@ -1,8 +1,30 @@
 <section class="pagina">
-  <header class="cabecera">
-    <p class="eyebrow"><span></span>Indicadores</p>
-    <h1 class="titulo">Lo que dicen los datos</h1>
-    <p class="texto">Cada indicador se calcula con los registros ya procesados de una carga e indica cuántos datos usó y de qué fuente vienen.</p>
+  <header class="hero">
+    <div class="hero__texto">
+      <p class="eyebrow"><span></span>Indicadores</p>
+      <h1 class="titulo">Lo que dicen los datos</h1>
+      <p class="texto">Cada indicador dice con cuántos datos se calculó y de qué fuente vienen.</p>
+    </div>
+
+    @if (!cargandoLista() && !errorLista() && disponibles().length > 0) {
+      <div class="hero__control">
+        <label for="carga">Carga</label>
+        <select id="carga" (change)="alCambiar($event)">
+          @for (c of disponibles(); track c.id) {
+            <option [value]="c.id" [selected]="seleccionada() === c.id">{{ etiquetaCarga(c) }}</option>
+          }
+        </select>
+      </div>
+    }
+
+    @if (datos(); as d) {
+      <ul class="hero__datos" aria-label="Origen de los datos">
+        <li><span>Fuente</span><strong>{{ d.carga.fuente.nombre }}</strong></li>
+        <li><span>Período</span><strong>{{ periodo() }}</strong></li>
+        <li><span>Registros</span><strong>{{ numero(d.totalRegistros) }}</strong></li>
+        <li><span>Tipo de datos</span><strong>{{ titulo() }}</strong></li>
+      </ul>
+    }
   </header>
 
   @if (cargandoLista()) {
@@ -15,65 +37,93 @@
       <p>Los indicadores aparecen cuando una carga se procesa. Abre una carga, valídala y procésala.</p>
       <a class="boton" routerLink="/cargas">Ir a las cargas</a>
     </div>
-  } @else {
-    <div class="tarjeta selector">
-      <label for="carga">Carga</label>
-      <select id="carga" (change)="alCambiar($event)">
-        @for (c of disponibles(); track c.id) {
-          <option [value]="c.id" [selected]="seleccionada() === c.id">{{ etiquetaCarga(c) }}</option>
-        }
-      </select>
-    </div>
-
-    @if (cargandoDatos()) {
-      <p class="estado" role="status">Calculando indicadores…</p>
-    } @else if (errorDatos(); as mensaje) {
-      <div class="aviso aviso--error" role="alert"><p>{{ mensaje }}</p></div>
-    } @else if (datos(); as d) {
-      <section class="resumen" aria-label="Origen de los datos">
-        <div><span class="resumen__k">Fuente</span><strong>{{ d.carga.fuente.nombre }}</strong></div>
-        <div><span class="resumen__k">Período</span><strong>{{ periodo() }}</strong></div>
-        <div><span class="resumen__k">Registros procesados</span><strong>{{ numero(d.totalRegistros) }}</strong></div>
-      </section>
-
-      @if (d.indicadores.length === 0) {
-        <div class="vacio">
-          <h2>Esta carga todavía no tiene indicadores</h2>
-          <p>Aún no se definieron indicadores para este tipo de datos.</p>
-        </div>
-      } @else {
-        <h2 class="subtitulo">{{ titulo() }}</h2>
-        <div class="rejilla">
-          @for (i of d.indicadores; track i.id) {
-            <article class="indicador" [class.indicador--ancho]="i.distribucion?.length">
+  } @else if (cargandoDatos()) {
+    <p class="estado" role="status">Calculando indicadores…</p>
+  } @else if (errorDatos(); as mensaje) {
+    <div class="aviso aviso--error" role="alert"><p>{{ mensaje }}</p></div>
+  } @else if (datos(); as d) {
+    @if (d.indicadores.length === 0) {
+      <div class="vacio">
+        <h2>Esta carga todavía no tiene indicadores</h2>
+        <p>Aún no se definieron indicadores para este tipo de datos.</p>
+      </div>
+    } @else {
+      @if (cifras().length) {
+        <div class="cifras">
+          @for (i of cifras(); track i.id) {
+            <article class="cifra" [attr.title]="i.descripcion">
               <h3>{{ i.nombre }}</h3>
-              <p class="indicador__desc">{{ i.descripcion }}</p>
-
-              @if (i.valor !== null) {
-                <p class="indicador__valor">{{ valor(i) }}</p>
-              } @else if (!i.distribucion?.length) {
-                <p class="indicador__vacio">Sin datos suficientes para calcularlo.</p>
-              }
-
-              @if (i.distribucion?.length) {
-                <ul class="barras" [attr.aria-label]="'Distribución: ' + i.nombre">
-                  @for (b of barras(i); track b.categoria) {
-                    <li>
-                      <span class="barras__nombre">{{ b.categoria }}</span>
-                      <span class="barras__pista" aria-hidden="true"><span class="barras__barra" [style.width.%]="b.ancho"></span></span>
-                      <span class="barras__cifra">{{ numero(b.porcentaje) }} % <small>({{ numero(b.n) }})</small></span>
-                    </li>
-                  }
-                </ul>
-              }
-
+              <p class="cifra__valor">
+                @if (grande(i).prefijo) { <small>{{ grande(i).prefijo }}</small> }
+                {{ grande(i).numero }}
+                @if (grande(i).sufijo) { <small>{{ grande(i).sufijo }}</small> }
+              </p>
+              <span class="sr">{{ i.descripcion }}</span>
               @if (i.advertencia) {
-                <p class="indicador__aviso"><strong>Por confirmar.</strong> {{ i.advertencia }}</p>
+                <details class="nota">
+                  <summary>Por confirmar</summary>
+                  <p>{{ i.advertencia }}</p>
+                </details>
               }
-              <p class="indicador__pie">{{ registros(i) }}</p>
+              <p class="pie">{{ registros(i) }}</p>
             </article>
           }
         </div>
+      }
+
+      @if (repartos().length) {
+        <div class="repartos">
+          @for (i of repartos(); track i.id) {
+            <article class="reparto" [attr.title]="i.descripcion">
+              <h3>{{ i.nombre }}</h3>
+              <span class="sr">{{ i.descripcion }}</span>
+              <div class="reparto__cuerpo">
+                <div class="anillo" [style.background]="anillo(i)" role="img" [attr.aria-label]="'Reparto: ' + i.nombre">
+                  <div class="anillo__centro">
+                    @if (i.valor !== null) {
+                      <strong>{{ grande(i).numero }}@if (grande(i).sufijo === '%') {<small>%</small>}</strong>
+                      @if (grande(i).aclaracion || grande(i).sufijo !== '%') { <span>{{ grande(i).aclaracion || grande(i).sufijo }}</span> }
+                    } @else if (barras(i)[0]; as mayor) {
+                      <strong>{{ numero(mayor.porcentaje) }}<small>%</small></strong>
+                      <span>{{ mayor.categoria }}</span>
+                    }
+                  </div>
+                </div>
+                <ul class="leyenda">
+                  @for (b of barras(i); track b.categoria; let n = $index) {
+                    <li>
+                      <span class="leyenda__color" [style.background]="'var(--d' + (n + 1) + ')'" aria-hidden="true"></span>
+                      <span class="leyenda__nombre">{{ b.categoria }}</span>
+                      <span class="leyenda__cifra">{{ numero(b.porcentaje) }} % <small>({{ numero(b.n) }})</small></span>
+                    </li>
+                  }
+                </ul>
+              </div>
+              @if (i.advertencia) {
+                <details class="nota"><summary>Por confirmar</summary><p>{{ i.advertencia }}</p></details>
+              }
+              <p class="pie">{{ registros(i) }}</p>
+            </article>
+          }
+        </div>
+      }
+
+      @if (calificaciones().length) {
+        <article class="calificaciones">
+          <h3>Satisfacción y retorno</h3>
+          <p class="calificaciones__ayuda">Promedios en escala de 1 a 5, según lo que respondieron los turistas.</p>
+          <ul>
+            @for (i of calificaciones(); track i.id) {
+              <li [attr.title]="i.descripcion">
+                <span class="calificaciones__nombre">{{ i.nombre }}</span>
+                <span class="calificaciones__pista" aria-hidden="true"><span class="calificaciones__barra" [style.width.%]="ancho(i)"></span></span>
+                <strong class="calificaciones__valor">{{ grande(i).numero }} <small>/ 5</small></strong>
+                <span class="sr">{{ i.descripcion }}</span>
+              </li>
+            }
+          </ul>
+          <p class="pie">{{ registrosGrupo(calificaciones()) }}</p>
+        </article>
       }
     }
   }
