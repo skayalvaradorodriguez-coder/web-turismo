@@ -7,7 +7,8 @@ const MARCA = 'Pacífico Abierto';
 
 export const routes: Routes = [
   // Debe ir primero: si no, la raiz "/" coincide con el marco de acceso y se queda sin formulario
-  { path: '', redirectTo: 'home', pathMatch: 'full' },
+  // La entrada es el portal publico; desde ahi se puede iniciar sesion
+  { path: '', redirectTo: 'portal', pathMatch: 'full' },
   // Parte publica: se puede ver sin iniciar sesion
   {
     path: 'portal',
@@ -116,5 +117,5 @@ export const routes: Routes = [
       },
     ],
   },
-  { path: '**', redirectTo: 'home' },
+  { path: '**', redirectTo: 'portal' },
 ];
