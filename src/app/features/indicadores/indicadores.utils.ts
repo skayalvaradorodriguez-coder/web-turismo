@@ -126,6 +126,7 @@ const TITULO_POR_ESTRUCTURA: Record<string, string> = {
   ots_turista_v1: 'Perfil de los turistas',
   ots_hotel_v1: 'Alojamiento',
   kobo_carnaval_v1: 'Encuesta a visitantes',
+  kobo_semana_santa_v1: 'Encuesta a visitantes',
 };
 
 /** Nombre corto del tipo de datos de una carga, a partir de su estructura. */

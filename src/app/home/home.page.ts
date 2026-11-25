@@ -23,9 +23,9 @@ const PASOS: readonly { estado: EstadoCarga; ayuda: string }[] = [
 ];
 
 /** Indicadores que se destacan en el inicio, en este orden (los que existan en la carga elegida). */
-const DESTACADOS = ['T1', 'T4', 'T10', 'T12', 'H1', 'H2', 'H3', 'C1', 'C34', 'C36', 'C31'];
+const DESTACADOS = ['T1', 'T4', 'T10', 'T12', 'H1', 'H2', 'H3', 'C1', 'C34', 'C36', 'C31', 'S1', 'S37', 'S34'];
 /** Reparto que se dibuja como anillo en el inicio. */
-const REPARTOS_PREFERIDOS = ['T5', 'T6', 'T2', 'C8', 'C10', 'C2'];
+const REPARTOS_PREFERIDOS = ['T5', 'T6', 'T2', 'C8', 'C10', 'C2', 'S8', 'S10', 'S2'];
 const MAX_CARGAS_PANORAMA = 4;
 
 @Component({
