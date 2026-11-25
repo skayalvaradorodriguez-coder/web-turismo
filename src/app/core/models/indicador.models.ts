@@ -14,6 +14,8 @@ export interface Indicador {
   valor: number | null;
   unidad: string;
   distribucion?: ItemDistribucion[];
+  /** Cada encuestado pudo elegir varias opciones: los porcentajes no suman 100. */
+  respuestaMultiple?: boolean;
   registrosUsados: number;
   /** Registros sin dato o con dato incoherente: no entran al calculo. */
   registrosExcluidos: number;

@@ -46,10 +46,10 @@ export function textoRegistros(usados: number, excluidos: number): string {
 }
 
 /** Como se dibuja cada indicador: una cifra, una calificacion de 1 a 5 o un reparto por categorias. */
-export type TipoIndicador = 'cifra' | 'calificacion' | 'distribucion';
+export type TipoIndicador = 'cifra' | 'calificacion' | 'distribucion' | 'multiple';
 
 export function tipoDe(i: Indicador): TipoIndicador {
-  if (i.distribucion?.length) return 'distribucion';
+  if (i.distribucion?.length) return i.respuestaMultiple ? 'multiple' : 'distribucion';
   if (i.valor !== null && i.unidad === 'de 5') return 'calificacion';
   return 'cifra';
 }
@@ -125,6 +125,7 @@ export function textoRegistrosGrupo(usados: readonly number[]): string {
 const TITULO_POR_ESTRUCTURA: Record<string, string> = {
   ots_turista_v1: 'Perfil de los turistas',
   ots_hotel_v1: 'Alojamiento',
+  kobo_carnaval_v1: 'Encuesta a visitantes',
 };
 
 /** Nombre corto del tipo de datos de una carga, a partir de su estructura. */

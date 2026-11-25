@@ -23,9 +23,9 @@ const PASOS: readonly { estado: EstadoCarga; ayuda: string }[] = [
 ];
 
 /** Indicadores que se destacan en el inicio, en este orden (los que existan en la carga elegida). */
-const DESTACADOS = ['T1', 'T4', 'T10', 'T12', 'H1', 'H2', 'H3'];
+const DESTACADOS = ['T1', 'T4', 'T10', 'T12', 'H1', 'H2', 'H3', 'C1', 'C34', 'C36', 'C31'];
 /** Reparto que se dibuja como anillo en el inicio. */
-const REPARTOS_PREFERIDOS = ['T5', 'T6', 'T2'];
+const REPARTOS_PREFERIDOS = ['T5', 'T6', 'T2', 'C8', 'C10', 'C2'];
 const MAX_CARGAS_PANORAMA = 4;
 
 @Component({
@@ -73,10 +73,10 @@ export class HomePage implements OnInit {
   protected readonly repartoPrincipal = computed<Indicador | null>(() => {
     const lista = this.panorama()?.indicadores ?? [];
     for (const id of REPARTOS_PREFERIDOS) {
-      const i = lista.find((x) => x.id === id && x.distribucion?.length);
+      const i = lista.find((x) => x.id === id && x.distribucion?.length && !x.respuestaMultiple);
       if (i) return i;
     }
-    return lista.find((x) => x.distribucion?.length) ?? null;
+    return lista.find((x) => x.distribucion?.length && !x.respuestaMultiple) ?? null;
   });
   private readonly nombresFuente = computed(() => new Map(this.fuentes().map((f) => [f.id, f.nombre])));
 

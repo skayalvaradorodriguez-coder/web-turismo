@@ -43,6 +43,34 @@
   </div>
 }
 
+@if (multiples().length) {
+  <div class="repartos">
+    @for (i of multiples(); track i.id) {
+      <article class="reparto">
+        <button type="button" class="info" [attr.aria-expanded]="hayInfo(i.id)" (click)="alternarInfo(i.id)">
+          <h3>{{ i.nombre }}</h3>
+          <span class="info__marca" aria-hidden="true">i</span>
+        </button>
+        @if (hayInfo(i.id)) { <p class="info__texto">{{ i.descripcion }}</p> }
+        <p class="multiple__aviso">Cada persona pudo marcar varias opciones, por eso los porcentajes no suman 100.</p>
+        <ul class="multiple">
+          @for (d of i.distribucion; track d.categoria) {
+            <li>
+              <span class="multiple__nombre">{{ d.categoria }}</span>
+              <span class="multiple__pista" aria-hidden="true"><span class="multiple__barra" [style.width.%]="d.porcentaje"></span></span>
+              <strong class="multiple__valor">{{ numero(d.porcentaje) }} % <small>({{ numero(d.n) }})</small></strong>
+            </li>
+          }
+        </ul>
+        @if (i.advertencia) {
+          <details class="nota"><summary>Por confirmar</summary><p>{{ i.advertencia }}</p></details>
+        }
+        <p class="pie">{{ registros(i) }}</p>
+      </article>
+    }
+  </div>
+}
+
 @if (calificaciones().length) {
   <article class="calificaciones">
     <h3>Satisfacción y retorno</h3>

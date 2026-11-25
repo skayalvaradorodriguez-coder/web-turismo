@@ -52,6 +52,7 @@ describe('tipoDe', () => {
     expect(tipoDe(indicador({}))).toBe('cifra');
     expect(tipoDe(indicador({ valor: 4.2, unidad: 'de 5' }))).toBe('calificacion');
     expect(tipoDe(indicador({ valor: null, unidad: '%', distribucion: [{ categoria: 'A', n: 1, porcentaje: 100 }] }))).toBe('distribucion');
+    expect(tipoDe(indicador({ valor: null, unidad: '%', respuestaMultiple: true, distribucion: [{ categoria: 'A', n: 1, porcentaje: 100 }] }))).toBe('multiple');
   });
 
   it('un indicador con cifra y reparto se dibuja como reparto', () => {

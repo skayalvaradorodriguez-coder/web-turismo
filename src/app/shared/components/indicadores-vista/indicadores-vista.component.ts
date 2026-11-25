@@ -18,6 +18,7 @@ export class IndicadoresVistaComponent {
 
   protected readonly cifras = computed(() => this.indicadores().filter((i) => tipoDe(i) === 'cifra'));
   protected readonly repartos = computed(() => this.indicadores().filter((i) => tipoDe(i) === 'distribucion'));
+  protected readonly multiples = computed(() => this.indicadores().filter((i) => tipoDe(i) === 'multiple'));
   protected readonly calificaciones = computed(() => this.indicadores().filter((i) => tipoDe(i) === 'calificacion'));
 
   /** Indicadores cuya descripcion esta desplegada ("i"). */
